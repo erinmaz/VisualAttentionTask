@@ -44,7 +44,7 @@ cd ..;
 % Continue until escape is pressed
 
 continueExperiment = true;
-n = 0; % Run number itterator
+n = 0; % Run number iterator
 
 while continueExperiment == true 
     % Display the main menu

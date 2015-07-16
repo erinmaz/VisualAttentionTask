@@ -1,11 +1,11 @@
 function [ run_name, run_data ] = experiment_run( run_number, window, windowRect, fixRect, stimRect, white, grey, black)
-% This function presents the experiment (controll and attention conditions)
+% This function presents the experiment (control and attention conditions)
 % and saves the run number and response data.
 
 %   A block experiment with a peripheral flickering checkerboard and a 
-%   central fixation.  The controll (fixation) condition includes a 
+%   central fixation.  The control (fixation) condition includes a 
 %   one-back memory task on digits appearing at fixation. The attention 
-%   condition requires participants to monitor and report subtle contrast 
+%   condition requires participants to monitor and report subtle contrast q
 %   changes of a low contrast peripheral grating. The function is organized in 
 %   chronological order.  First the fixation condition is presented, 
 %   followed by the attention condition.  Responses are monitored at every 
@@ -34,8 +34,8 @@ run_data.attention_response.false_alarm = 0;
 run_data.attention_response.flickers = 0;
 
 % Task Variables
-time_head = 5;      %45
-head_delay = 20;    %10
+time_head = 2;      %45
+head_delay = 2;    %10
 tail_delay = 10;    %55 change?
 time_tail = 10;     %35 change?
 time_on = 20;       %20
@@ -145,8 +145,9 @@ flicker_count = 1; % index of random list
 
 % The next step takes a long time, draw a "PLEASE WAIT" screen
 % Prepare the Window
-HideCursor;
-Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');% Set up alpha-blending for smooth (anti-aliased) lines
+
+% HideCursor;
+ Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');% Set up alpha-blending for smooth (anti-aliased) lines
 
 % Draw the Instructions
 Screen('TextSize', window, 48);
@@ -157,59 +158,73 @@ Screen('Flip', window);
 
 % Define Aperature 
 % Make a gaussian aperture with the "alpha" channel - DOESN'T LOOK RIGHT
-gaussDim = 500; % outer diameter of aperature in pixels?
-gaussSigma = gaussDim / 3; % inner diameeter of aperature? 
-[xm, ym] = meshgrid(-gaussDim:gaussDim, -gaussDim:gaussDim);
-gauss = exp(-(((xm .^2) + (ym .^2)) ./ (2 * gaussSigma^2)));
-[s1, s2] = size(gauss);
-mask = ones(s1, s2, 2) * grey;
-mask(:, :, 2) = white * (1 - gauss);
-masktex = Screen('MakeTexture', window, mask);
-% Make a circular aperature - STILL NEED TO ADD SHADING
-circle = ((xm.^2)+(ym.^2) <= 445^2); % 445 is the radius of the outer circle
-[s1, s2] = size(circle);
-maskc = ones(s1, s2, 2) * grey;  
-maskc(:, :, 2) = white * (1 - circle);
-masktexc = Screen('MakeTexture', window, maskc);
-% Make a grey texture to cover the full window
-fullWindowMask = Screen('MakeTexture', window, ones(screenYpixels, screenXpixels) .* grey);
+% Moradi paper says they used a trapezoid function, not a gaussian
+% (over about 7% of total size (~60 pixels? check this?)
+
+%gauss = exp(-(((xm .^2) + (ym .^2)) ./ (2 * gaussSigma^2)));
+
+%I had to change this from 900 because I couldn't get it to work with an
+%even number
+imSize = 890;% 890 is outer diameter of stimuli
+dim = imSize/2; %size of window 
+[xm, ym] = meshgrid(-dim:dim-1, -dim:dim-1);
+
+circle = ((xm.^2)+(ym.^2) <= dim^2); % 445 is the radius of the outer circle
+circle2 = ((xm.^2)+(ym.^2) <= (dim/2)^2);
+aperature = circle - circle2;
+
+trapvec = 0:.03333:1; %linear increase over 30 pixels (i.e., half of 60 - I'm not sure this is right)
+[xtrap,ytrap] = meshgrid([trapvec,fliplr(trapvec)]);
+linkern = xtrap.*ytrap;
+aperature_smooth=(conv2(aperature,linkern,'same'))/1000;
+
 % Define aperature coordinates
 xg = screenXpixels / 2;
 yg = screenYpixels / 2;
+[s1, s2] = size(aperature_smooth);
 dstRect = CenterRectOnPointd([0 0 s1, s2], xg, yg);
 
-% Make a sinusoidal checkerboard - THIS IS THE SECTION I NEED HELP WITH ---
-imSize = 900;% 890 is outer diameter of stimuli
+% Make 2d grating
+
 x = 1:imSize;
 x0 = (x / imSize) - .5;
 [xm, ym] = meshgrid(x0, x0);
+%[xm,ym]=meshgrid(imSize/2,imSize/2);
 theta1 = 45; % Right slanted sin grating
 theta2 = 135; % Left slanted sin grating
-lamda = 36; % Wavelength (in px) determines check size
+
+%check size looks too small to me, did you do it based on visual angle?
+lamda = 50; % Wavelength (in px) determines check size 
+
 sin_freq = imSize/lamda;
 amplitude = 0.15; % Determines contrast of flicker mask during flicker
-translation = 0.6; % Determines baseline opacity of flicker mask  
-textureList1 = [];
-textureList2 = [];
+translation = 0.6; % Determines baseline opacity of flicker mask
+%translation = 0.0;
+textureList1 = zeros(1,240);
+%textureList2 = [];
 for i = 1 : 240 % pre-draw 240 of these (one full phase) to save time during frames
+    %now the whole thing moves diagonally instead of up
     phase = i*1.5; % VARIES WITH TIME
     phaseRad = (phase * (pi/180));
     thetaRad1 = (theta1 / 360) * 2*pi;
     thetaRad2 = (theta2 / 360) * 2*pi;
     grating1 = sin( (((xm * cos(thetaRad1))+(ym * sin(thetaRad1)))*sin_freq * 2*pi) + phaseRad);
+
     grating2 = sin( (((xm * cos(thetaRad2))+(ym * sin(thetaRad2)))*sin_freq * 2*pi) + phaseRad);
+
+    finalgrating=(grating1.*grating2.*aperature_smooth);
+    finalgrating=(finalgrating+1)/2;
+    %finalgrating=((grating1.*grating2.*aperature_smooth)/1000)-1; %combine everything (two gratings + aperature) together 
     [s1, s2] = size(grating1);
     alpha = 1.3;
     mask1 = ones(s1, s2, 2) * grey;
-    mask1(:, :, 2) = grey * (1 - grating1);
-    mask1(:,:,1) = mask1(:,:,1)*alpha;
-    mask2 = ones(s1, s2, 2) * grey;
-    mask2(:, :, 2) = grey * (1 - grating2);
-    mask2(:,:,1) = mask2(:,:,1)*alpha;
-    gratingTexture1 = Screen('MakeTexture', window, mask1); % right slant
-    gratingTexture2 = Screen('MakeTexture', window, mask2); % left slant
-    textureList1 = [textureList1 gratingTexture1];
-    textureList2 = [textureList2 gratingTexture2];
+    %mask1(:,:,2) = grey * (1 - finalgrating);
+    mask1(:,:,2) = grey * (finalgrating);
+    %mask1(:,:,1) = mask1(:,:,1)*alpha;
+    mask1(:,:,1) = mask1(:,:,1);
+    %gratingTexture1 = Screen('MakeTexture', window, mask1); 
+    gratingTexture1 = Screen('MakeTexture', window, finalgrating); 
+    textureList1(i) = gratingTexture1;
 end
 %-----------------------------------------------------------------------
 
@@ -388,14 +403,15 @@ for i = 1:cycles
         
         % Draw Sin grating
         filterMode = 1; % Smooths sin grating
-        Screen('DrawTextures', window, [textureList1(phase_index), textureList2(phase_index)], [], dstRect, 0, filterMode);
-        
+      %  Screen('DrawTextures', window, [textureList1(phase_index), textureList2(phase_index)], [], dstRect, 0, filterMode);
+      %   Screen('DrawTextures', window, textureList1(phase_index), [], dstRect, 0, filterMode);
+      Screen('DrawTextures', window, textureList1(phase_index), [], [], 0, filterMode);
         % Draw the Aperature
-        Screen('DrawTextures', fullWindowMask, masktexc, [], dstRect)% draw aperature onto full screen aperature mask
-        Screen('DrawTexture', window, fullWindowMask); % draw mask
+  %      Screen('DrawTextures', fullWindowMask, masktexc, [], dstRect)% draw aperature onto full screen aperature mask
+  %      Screen('DrawTexture', window, fullWindowMask); % draw mask
 
         % Draw the Middle
-        Screen('FillOval', window, grey, stimRect);
+     %   Screen('FillOval', window, grey, stimRect);
  
         % Create an alpha mask to modulate flicker
         if flicker
@@ -404,7 +420,8 @@ for i = 1:cycles
         else
             greyTrans = [grey grey grey translation];
         end
-        newRect = [0, 0, 890, 890];
+        %newRect = [0, 0, 890, 890];
+        newRect = [0, 0, 1000, 1000];
         flickerRect = CenterRectOnPointd(newRect, xCenter, yCenter);
         Screen('FillOval', window, greyTrans, flickerRect);
         
@@ -854,7 +871,7 @@ for i = 1:cycles
         Screen('DrawTexture', window, fullWindowMask); % draw mask
 
         % Draw the Middle
-        Screen('FillOval', window, grey, stimRect);
+       % Screen('FillOval', window, grey, stimRect);
  
         % Create an alpha mask to modulate flicker
         if flicker
