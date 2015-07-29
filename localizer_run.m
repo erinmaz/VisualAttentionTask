@@ -1,4 +1,4 @@
-function [ run_name, run_data ] = localizer_run( run_number, window, windowRect, fixRect, stimRect, white, grey)
+function [ run_name, run_data ] = localizer_run( run_number, window, windowRect, fixRect, stimRect, white, grey, black)
 % This function presents the localizer and saves the run number.
 
 %   A block experiment with a peripheral flickering checkerboard and a 
@@ -28,14 +28,8 @@ cycles = 4;     % 7
 on_stim = [1 2]; % which contrast is flipped
 freq = 10; % checkerboard frequency in Hz
 matrix_size = 16; % checkerboard  % use this one to change check size
-check_size = 50; % pixles per square
-% For attempted shading 
-gradient_width = 6; % donut hole
-hole_size = 300; % smallest diameter of grating ring
-greyTrans = [grey grey grey 0.25]; % Transparent grey colour
 
 % Window Coordinates
-[xCenter, yCenter] = RectCenter(windowRect);
 [screenXpixels, screenYpixels] = Screen('WindowSize', window);
 
 
@@ -65,10 +59,10 @@ fprintf('Waiting for trigger.  Press any key to continue');
 % Set Timer
 t_stop = GetSecs + time_head;
 
-% Draw the Fixation Box
+% Draw the Fixation Circle
 while GetSecs < t_stop
-    rectColor = [0.8 0 0];
-    Screen('FillRect', window, rectColor, fixRect);
+    %rectColor = [0.8 0 0];
+    Screen('FillOval', window, black, fixRect);
     Screen('Flip', window);
 
     % Check If User Quits - press 'q' to quit
@@ -85,30 +79,39 @@ end
 
 % DISPLAY THE CYCLES 
 
+% ATTEMPTED SHADING
+imSize = 890;% 890 is outer diameter of stimuli
+dimA = imSize/2; %size of window
+[xm, ym] = meshgrid(-dimA:dimA-1, -dimA:dimA-1);
+circle1 = ((xm.^2)+(ym.^2) <= (dimA-18)^2); % 445 is the radius of the outer circle
+circle2 = ((xm.^2)+(ym.^2) <= 190^2); % 190 is radius of inner circle
+aperature = circle1 - circle2;
+trapvec = 0:.03333:1; %linear increase over 30 pixels (i.e., half of 60 - I'm not sure this is right)
+[xtrap,ytrap] = meshgrid([trapvec,fliplr(trapvec)]);
+linkern = xtrap.*ytrap;
+% Erin, I tried to multiply this by the checkers but couldn't get it to run
+aperature_smooth=(conv2(aperature,linkern,'same'))/1000;
+
+
 % Define Checkerboard
 checkerboard = repmat(eye(2), matrix_size, matrix_size);
+% checkerboard = checkerboard * aperature_smooth;
 checkerTexture(1) = Screen('MakeTexture', window, checkerboard);
 checkerTexture(2) = Screen('MakeTexture', window, 1-checkerboard); % inverse contrast
-[s1, s2] = size(checkerboard);
-dstRect = [0 0 s1 s2] .* check_size; % destination rectangle
-dstRect = CenterRectOnPointd(dstRect, xCenter, yCenter);
 
 % Define Aperature 
 % Make a gaussian aperture with the "alpha" channel
-gaussDim = 500; % Do not change % ATTEMPTED SHADING
-gaussSigma = gaussDim / 3 ; % inner diameeter of aperature? % ATTEMPTED SHADING
-[xm, ym] = meshgrid(-gaussDim:gaussDim, -gaussDim:gaussDim);
-%[xm_new, ym_new] = exp(-0.00154*(sqrt((xm .^2)+(ym .^2)))); % exponential decay to limit sgading
-gauss = exp(-(((xm .^2) + (ym .^2)) ./ (2 * gaussSigma^2))); % ATTEMPTED SHADING
+dim = 500; % Do not change
+[xm, ym] = meshgrid(-dim:dim, -dim:dim);
 circle = ((xm.^2)+(ym.^2) <= 445^2); % 445 is the radius of the outer circle
-[s1, s2] = size(gauss); % ATTEMPTED SHADING
 [s1, s2] = size(circle);
-mask = ones(s1, s2, 2) * grey; % ATTEMPTED SHADING
-mask(:, :, 2) = white * (1 - gauss); % ATTEMPTED SHADING
-maskc = ones(s1, s2, 2) * grey;  
+% masks = ones(s1, s2, 2) * grey * aperature_smooth;
+maskc = ones(s1, s2, 2) * grey;
+% masks(:,:,2) = white * aperature_smooth;
 maskc(:, :, 2) = white * (1 - circle);
-masktex = Screen('MakeTexture', window, mask); % ATTEMPTED SHADING - gauss blur
+% maskc=(maskc+1)/2;
 masktexc = Screen('MakeTexture', window, maskc);
+% masktexs = Screen('MakeTexture', window, masks);
 % Make a grey texture to cover the full window
 fullWindowMask = Screen('MakeTexture', window, ones(screenYpixels, screenXpixels) .* grey);
 % Define aperature coordinates
@@ -153,15 +156,9 @@ for i = 1:cycles
 
         % Draw the Middle
         Screen('FillOval', window, grey, stimRect);
-          % ATTEMPTED SHADING - using layers of translusent circles
-%         % Create a gradient using 10 different sized translucent circles
-%          for a = 1:9
-%              newRect = [0, 0, hole_size+(gradient_width*a), hole_size+(gradient_width*a)];
-%              shadingRect = CenterRectOnPointd(newRect, xCenter, yCenter);
-%              Screen('FillOval', window, greyTrans, shadingRect);
-%          end             
+           
         % Draw the fixation point     
-        Screen('FillRect', window, rectColor, fixRect);
+        Screen('FillOval', window, black, fixRect);
  
         % Flip to the screen
         vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
@@ -191,7 +188,7 @@ for i = 1:cycles
     
     % Draw Fixation
     while GetSecs < t_stop
-        Screen('FillRect', window, rectColor, fixRect);
+        Screen('FillOval', window, black, fixRect);
         Screen('Flip', window);
         
         % Check If User Quits - press 'q' to quit
