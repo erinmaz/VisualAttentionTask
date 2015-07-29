@@ -44,7 +44,7 @@ cd ..;
 % Continue until escape is pressed
 
 continueExperiment = true;
-n = 0; % Run number itterator
+n = 0; % Run number iterator
 
 while continueExperiment == true 
     % Display the main menu
@@ -81,7 +81,7 @@ while continueExperiment == true
         if keyInt == 30 % 1 KEY -> LOCALIZER
             n = n+1;
             % Call the localizer function
-            [run_name, run_data] = localizer_run(n, window, windowRect, fixRect, stimRect, white, grey);
+            [run_name, run_data] = localizer_run(n, window, windowRect, fixRect, stimRect, white, grey, black);
 
             % Test function output 
             eval([run_name, '= run_data;']);
@@ -93,23 +93,19 @@ while continueExperiment == true
 
         elseif keyInt == 31 % 2 KEY -> EXPERIMENT
             n = n+1;
-            % Call the experiment function
-            [run_name, run_data] = experiment_run(n, window, windowRect, fixRect, stimRect, white, grey, black);
-            
-            % Test function output 
-            eval([run_name, '= run_data;']);
-            cd log;
-            save (filename, 'resp_mat'); 
-            cd ..;
+                % Call the experiment function
+                [run_name, run_data] = experiment_run(n, window, windowRect, fixRect, stimRect, grey, black);
+
+                % Test function output 
+                eval([run_name, '= run_data;']);
+                cd log;
+                save (filename, 'resp_mat'); 
+                cd ..;
             
             respToBeMade = false;
 
         elseif keyInt == 41 % ESCAPE KEY -> END SESSION
 
-            % Temporary action, replace with end of experiment
-            rectColor = [0 0.5 0.5];
-            Screen('FillRect', window, rectColor, fixRect);
-            Screen('Flip', window);
             continueExperiment = false;
             respToBeMade = false; 
         end
@@ -127,4 +123,3 @@ clear all;
 sca;
 
 end
-
