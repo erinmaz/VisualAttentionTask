@@ -1,4 +1,5 @@
 function main_experiment
+% Last modified Aug10 - copy from Melany's working version
 % This is the main file for the visual attention task shifting attention
 % from central vision to peripheral vision. Run experiment from here.
 
@@ -38,7 +39,7 @@ cd ..;
 %---------------------------------------------------------------------
 % Open a window and get its attributes
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, grey);
-[screenXpixels, screenYpixels] = Screen('WindowSize', window);
+%[screenXpixels, screenYpixels] = Screen('WindowSize', window);
 [xCenter, yCenter] = RectCenter(windowRect);
 
 % Continue until escape is pressed
@@ -81,7 +82,7 @@ while continueExperiment == true
         if keyInt == 30 % 1 KEY -> LOCALIZER
             n = n+1;
             % Call the localizer function
-            [run_name, run_data] = localizer_run(n, window, windowRect, fixRect, stimRect, white, grey);
+            [run_name, run_data] = localizer_run(n, window, fixRect, stimRect, white, grey, black);
 
             % Test function output 
             eval([run_name, '= run_data;']);
@@ -93,23 +94,19 @@ while continueExperiment == true
 
         elseif keyInt == 31 % 2 KEY -> EXPERIMENT
             n = n+1;
-            % Call the experiment function
-            [run_name, run_data] = experiment_run(n, window, windowRect, fixRect, stimRect, white, grey, black);
-            
-            % Test function output 
-            eval([run_name, '= run_data;']);
-            cd log;
-            save (filename, 'resp_mat'); 
-            cd ..;
+                % Call the experiment function
+                [run_name, run_data] = experiment_run(n, window, windowRect, fixRect, grey, black);
+
+                % Test function output 
+                eval([run_name, '= run_data;']);
+                cd log;
+                save (filename, 'resp_mat'); 
+                cd ..;
             
             respToBeMade = false;
 
         elseif keyInt == 41 % ESCAPE KEY -> END SESSION
 
-            % Temporary action, replace with end of experiment
-            rectColor = [0 0.5 0.5];
-            Screen('FillRect', window, rectColor, fixRect);
-            Screen('Flip', window);
             continueExperiment = false;
             respToBeMade = false; 
         end
