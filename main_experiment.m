@@ -1,5 +1,8 @@
 function main_experiment
-% Last modified Aug10 - copy from Melany's working version
+% Edited Aug 14 2015, MM
+% ----- Remember to check timing and spatial location on scanner.  If it
+% doesn't work, Bec can help!
+
 % This is the main file for the visual attention task shifting attention
 % from central vision to peripheral vision. Run experiment from here.
 

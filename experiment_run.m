@@ -1,5 +1,5 @@
 function [ run_name, run_data ] = experiment_run( run_number, window, windowRect, fixRect, grey, black)
-% Last modified Aug 10 - Copy from Melany's working version
+% Edited Aug 10 2015, MM
 % This function presents the experiment (control and attention conditions)
 % and saves the run number and response data.
 
@@ -235,7 +235,6 @@ for i = 1 : 240 % pre-draw 240 of these (one full phase) to save time during fra
     gratingTexture1 = Screen('MakeTexture', window, finalgrating);
     textureList1(i) = gratingTexture1;
 end
-%-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
 % DRAW INSTRUCTIONS, WAIT FOR TRIGGER

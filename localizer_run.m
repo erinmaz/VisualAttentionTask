@@ -1,5 +1,5 @@
 function [ run_name, run_data ] = localizer_run( run_number, window, fixRect, stimRect, white, grey, black)
-% Last modified Aug 10 - Copy from Melany's working version
+% Edited Aug 14 2015, MM
 % This function presents the localizer and saves the run number.
 
 %   A block experiment with a peripheral flickering checkerboard and a 
@@ -80,45 +80,42 @@ end
 
 % DISPLAY THE CYCLES 
 
-% ATTEMPTED SHADING
-imSize = 890;% 890 is outer diameter of stimuli
+% Define Aperature Shading
+imSize = 1001; %size of the circle mask
 dimA = imSize/2; %size of window
 [xm, ym] = meshgrid(-dimA:dimA-1, -dimA:dimA-1);
-circle1 = ((xm.^2)+(ym.^2) <= (dimA-18)^2); % 445 is the radius of the outer circle
+circle1 = ((xm.^2)+(ym.^2) <= (440-18)^2); % 440 is the radius of the outer circle
 circle2 = ((xm.^2)+(ym.^2) <= 190^2); % 190 is radius of inner circle
 aperature = circle1 - circle2;
 trapvec = 0:.03333:1; %linear increase over 30 pixels (i.e., half of 60 - I'm not sure this is right)
 [xtrap,ytrap] = meshgrid([trapvec,fliplr(trapvec)]);
 linkern = xtrap.*ytrap;
-% Erin, I tried to multiply this by the checkers but couldn't get it to run
 aperature_smooth=(conv2(aperature,linkern,'same'))/1000;
-
 
 % Define Checkerboard
 checkerboard = repmat(eye(2), matrix_size, matrix_size);
-% checkerboard = checkerboard * aperature_smooth;
 checkerTexture(1) = Screen('MakeTexture', window, checkerboard);
 checkerTexture(2) = Screen('MakeTexture', window, 1-checkerboard); % inverse contrast
 
 % Define Aperature 
-% Make a gaussian aperture with the "alpha" channel
 dim = 500; % Do not change
 [xm, ym] = meshgrid(-dim:dim, -dim:dim);
 circle = ((xm.^2)+(ym.^2) <= 445^2); % 445 is the radius of the outer circle
 [s1, s2] = size(circle);
-% masks = ones(s1, s2, 2) * grey * aperature_smooth;
+% Plain aperature
 maskc = ones(s1, s2, 2) * grey;
-% masks(:,:,2) = white * aperature_smooth;
-maskc(:, :, 2) = white * (1 - circle);
-% maskc=(maskc+1)/2;
-masktexc = Screen('MakeTexture', window, maskc);
-% masktexs = Screen('MakeTexture', window, masks);
+maskc(:, :, 2) = white * (1 - circle);%* abs(1-aperature_smooth);%1001*1001, zero on checkers
+% Shaded aperature
+maska = ones(s1, s2, 2) * grey;
+maska(:, :, 2) = abs(1-aperature_smooth);
+masktexc = Screen('MakeTexture', window, maska);
 % Make a grey texture to cover the full window
 fullWindowMask = Screen('MakeTexture', window, ones(screenYpixels, screenXpixels) .* grey);
 % Define aperature coordinates
 xg = screenXpixels / 2;
 yg = screenYpixels / 2;
 dstRect = CenterRectOnPointd([0 0 s1, s2], xg, yg);
+
 
 % Initiate Cycle Loop
 for i = 1:cycles
