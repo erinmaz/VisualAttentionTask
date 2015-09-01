@@ -175,7 +175,7 @@ flicker_count = 1; % index of random list
 % The next step takes a long time, draw a "PLEASE WAIT" screen
 
 % Prepare the Window
-% HideCursor;  % DEBUG ONLY %%%%%%%%%%%%%%%%%
+%HideCursor;  % DEBUG ONLY %%%%%%%%%%%%%%%%%
 Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');% Set up alpha-blending for smooth (anti-aliased) lines
 
 % Draw the Instructions
@@ -189,18 +189,23 @@ Screen('Flip', window);
 % Moradi paper says they used a trapezoid function to smooth the aperature
 % (over about 7% of total size (~60 pixels? check this?)
 
-imSize = 890;% 890 is outer diameter of stimuli
-dim = imSize/2; %size of window
+imSize = screenXpixels; %size of window
+dim = imSize/2; 
 [xm, ym] = meshgrid(-dim:dim-1, -dim:dim-1);
 
-circle = ((xm.^2)+(ym.^2) <= (dim-18)^2); % 445 is the radius of the outer circle
-circle2 = ((xm.^2)+(ym.^2) <= 190^2); % 190 is radius of inner circle
+%circle = ((xm.^2)+(ym.^2) <= (dim-18)^2); % 445 is the radius of the outer circle
+circle = ((xm.^2)+(ym.^2) <= (dim)^2); % outer circle
+circle2 = ((xm.^2)+(ym.^2) <= (imSize*0.22)^2); % inner circle
 aperature = circle - circle2;
 
-trapvec = 0:.03333:1; %linear increase over 30 pixels (i.e., half of 60 - I'm not sure this is right)
+trapwidth=screenXpixels*0.07;
+trapinterval=1/trapwidth;
+trapvec = 0:trapinterval:1; 
 [xtrap,ytrap] = meshgrid([trapvec,fliplr(trapvec)]);
 linkern = xtrap.*ytrap;
-aperature_smooth=(conv2(aperature,linkern,'same'))/1000;
+aperature_smooth=(conv2(aperature,linkern,'same'));
+scale = max(aperature_smooth(:));
+aperature_smooth = aperature_smooth/scale;
 
 % Define aperature coordinates
 xg = screenXpixels / 2;
@@ -217,9 +222,9 @@ theta1 = 45; % Right slanted sin grating
 theta2 = 135; % Left slanted sin grating
 
 %check if lambda corresponds to visual angle in Moradi paper
-lamda = 50; % Wavelength (in px) determines check size
-
+lamda = screenXpixels*.06; % Wavelength (in px) determines check size
 sin_freq = imSize/lamda;
+
 amplitude = 0.15; % Determines contrast of flicker mask during flicker
 translation = 0.6; % Determines baseline opacity of flicker mask
 textureList1 = zeros(1,240);
@@ -235,6 +240,10 @@ for i = 1 : 240 % pre-draw 240 of these (one full phase) to save time during fra
     gratingTexture1 = Screen('MakeTexture', window, finalgrating);
     textureList1(i) = gratingTexture1;
 end
+
+% Setup flicker mask
+newRect = [0, 0, imSize*1.25, imSize*1.25];
+flickerRect = CenterRectOnPointd(newRect, xCenter, yCenter);
 
 %-----------------------------------------------------------------------
 % DRAW INSTRUCTIONS, WAIT FOR TRIGGER
@@ -465,8 +474,7 @@ for i = 1:cycles_interleaved
             else
                 greyTrans = [grey grey grey translation];
             end
-            newRect = [0, 0, 1000, 1000];
-            flickerRect = CenterRectOnPointd(newRect, xCenter, yCenter);
+            
             Screen('FillOval', window, greyTrans, flickerRect);
 
             % Draw the fixation
@@ -935,8 +943,8 @@ for i = 1:cycles_interleaved
             else
                 greyTrans = [grey grey grey translation];
             end
-            newRect = [0, 0, 1000, 1000];
-            flickerRect = CenterRectOnPointd(newRect, xCenter, yCenter);
+            %newRect = [0, 0, 1000, 1000];
+            %flickerRect = CenterRectOnPointd(newRect, xCenter, yCenter);
             Screen('FillOval', window, greyTrans, flickerRect);
 
             % Draw the fixation

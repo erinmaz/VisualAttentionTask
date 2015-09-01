@@ -23,6 +23,12 @@ clear all;
 % Psychtoolbox default settings
 PsychDefaultSetup(2);
 
+% Perform sync test to avoid flicker slowing when connected to projector. 0
+% = do NOT perform sync test. 1 = DO perform sync test.
+% ERIN - I THINK THIS IS BACKWARDS
+% (Added Aug 31, 2015)
+Screen('Preference','SkipSyncTests', 0)
+
 % Identify attached screens and the luminance
 screens = Screen('Screens');
 screenNumber = max(screens); %Draw to external screen

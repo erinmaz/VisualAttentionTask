@@ -27,8 +27,8 @@ cycles = 4;     % 7
 
 % Grating Variables
 on_stim = [1 2]; % which contrast is flipped
-freq = 10; % checkerboard frequency in Hz
-matrix_size = 16; % checkerboard  % use this one to change check size
+freq = 7; % checkerboard frequency in Hz 
+%matrix_size = 16; % checkerboard  % use this one to change check size
 
 % Window Coordinates
 [screenXpixels, screenYpixels] = Screen('WindowSize', window);
@@ -38,17 +38,86 @@ matrix_size = 16; % checkerboard  % use this one to change check size
 % DRAW INSTRUCTIONS, WAIT FOR TRIGGER
 %-----------------------------------------------------------------------
 % Prepare the Window
-HideCursor;
+%HideCursor;
 Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');% Set up alpha-blending for smooth (anti-aliased) lines
 
 % Draw the Instructions
 Screen('TextSize', window, 48);
+DrawFormattedText(window, 'Calculating. Please Wait...', 'center', 'center');
+Screen('Flip', window);
+
+imSize = screenXpixels; %size of window
+dim = imSize/2; 
+[xm, ym] = meshgrid(-dim:dim-1, -dim:dim-1);
+
+circle = ((xm.^2)+(ym.^2) <= (dim)^2); % outer circle
+circle2 = ((xm.^2)+(ym.^2) <= (imSize*0.22)^2); % inner circle
+aperature = circle - circle2;
+
+trapwidth=screenXpixels*0.07;
+trapinterval=1/trapwidth;
+trapvec = 0:trapinterval:1; 
+[xtrap,ytrap] = meshgrid([trapvec,fliplr(trapvec)]);
+linkern = xtrap.*ytrap;
+aperature_smooth=(conv2(aperature,linkern,'same'));
+scale = max(aperature_smooth(:));
+aperature_smooth = aperature_smooth/scale;
+
+% Define aperature coordinates
+xg = screenXpixels / 2;
+yg = screenYpixels / 2;
+[s1, s2] = size(aperature_smooth);
+dstRect = CenterRectOnPointd([0 0 s1, s2], xg, yg);
+
+% Make 2d grating
+x = 1:imSize;
+x0 = (x / imSize) - .5;
+[xm, ym] = meshgrid(x0, x0);
+theta1 = 45; % Right slanted sin grating
+theta2 = 135; % Left slanted sin grating
+
+%check if lambda corresponds to visual angle in Moradi paper
+lamda = screenXpixels*.06; % Wavelength (in px) determines check size
+sin_freq = imSize/lamda;
+
+phaseRad = 0;
+thetaRad1 = (theta1 / 360) * 2*pi;
+thetaRad2 = (theta2 / 360) * 2*pi;
+grating1 = sin( (((xm * cos(thetaRad1))+(ym * sin(thetaRad1)))*sin_freq * 2*pi) + phaseRad);
+grating2 = sin( (((xm * cos(thetaRad2))+(ym * sin(thetaRad2)))*sin_freq * 2*pi) + phaseRad);
+%finalgrating_a=(grating1.*grating2);
+finalgrating_a=(grating1.*grating2.*aperature_smooth);
+finalgrating_a=(finalgrating_a+1)/2;
+%finalgrating_a=(finalgrating_a.*aperature_smooth);
+
+%2nd grating 180 degrees out of phase with first grating
+phaseRad = pi/2;
+thetaRad1 = (theta1 / 360) * 2*pi;
+thetaRad2 = (theta2 / 360) * 2*pi;
+grating1 = sin( (((xm * cos(thetaRad1))+(ym * sin(thetaRad1)))*sin_freq * 2*pi) + phaseRad);
+grating2 = sin( (((xm * cos(thetaRad2))+(ym * sin(thetaRad2)))*sin_freq * 2*pi) + phaseRad);
+finalgrating_b=(grating1.*grating2.*aperature_smooth);
+finalgrating_b=(finalgrating_b+1)/2; % CHECK RANGE
+
+gratingTexture(1) = Screen('MakeTexture', window, finalgrating_a);
+gratingTexture(2) = Screen('MakeTexture', window, finalgrating_b); % inverse contrast
+
+
+
+% Draw the Instructions
+Screen('TextSize', window, 30);
 DrawFormattedText(window, 'Keep eyes fixated at the center mark', 'center', 'center');
 Screen('Flip', window);
 
 % Wait for Trigger : Any keystroke will work here
+% To get trigger to work, we plugged in the lumina box and had matlab
+% receive one trigger before starting the stim
 KbStrokeWait(-1);  % -1 causes it to check all keyboards
-fprintf('Waiting for trigger.  Press any key to continue');
+%KbWait
+%KbTriggerWait(KbName('T'));
+%Screen('TextSize', window, 30);
+%DrawFormattedText(window, 'Waiting for trigger.  Press any key to continue', 'center', 'center');
+%Screen('Flip', window);
 
 
 %-----------------------------------------------------------------------
@@ -80,41 +149,8 @@ end
 
 % DISPLAY THE CYCLES 
 
-% Define Aperature Shading
-imSize = 1001; %size of the circle mask
-dimA = imSize/2; %size of window
-[xm, ym] = meshgrid(-dimA:dimA-1, -dimA:dimA-1);
-circle1 = ((xm.^2)+(ym.^2) <= (440-18)^2); % 440 is the radius of the outer circle
-circle2 = ((xm.^2)+(ym.^2) <= 190^2); % 190 is radius of inner circle
-aperature = circle1 - circle2;
-trapvec = 0:.03333:1; %linear increase over 30 pixels (i.e., half of 60 - I'm not sure this is right)
-[xtrap,ytrap] = meshgrid([trapvec,fliplr(trapvec)]);
-linkern = xtrap.*ytrap;
-aperature_smooth=(conv2(aperature,linkern,'same'))/1000;
+%imSize = 870;% 890 is outer diameter of stimuli
 
-% Define Checkerboard
-checkerboard = repmat(eye(2), matrix_size, matrix_size);
-checkerTexture(1) = Screen('MakeTexture', window, checkerboard);
-checkerTexture(2) = Screen('MakeTexture', window, 1-checkerboard); % inverse contrast
-
-% Define Aperature 
-dim = 500; % Do not change
-[xm, ym] = meshgrid(-dim:dim, -dim:dim);
-circle = ((xm.^2)+(ym.^2) <= 445^2); % 445 is the radius of the outer circle
-[s1, s2] = size(circle);
-% Plain aperature
-maskc = ones(s1, s2, 2) * grey;
-maskc(:, :, 2) = white * (1 - circle);%* abs(1-aperature_smooth);%1001*1001, zero on checkers
-% Shaded aperature
-maska = ones(s1, s2, 2) * grey;
-maska(:, :, 2) = abs(1-aperature_smooth);
-masktexc = Screen('MakeTexture', window, maska);
-% Make a grey texture to cover the full window
-fullWindowMask = Screen('MakeTexture', window, ones(screenYpixels, screenXpixels) .* grey);
-% Define aperature coordinates
-xg = screenXpixels / 2;
-yg = screenYpixels / 2;
-dstRect = CenterRectOnPointd([0 0 s1, s2], xg, yg);
 
 
 % Initiate Cycle Loop
@@ -144,21 +180,12 @@ for i = 1:cycles
         frameCounter = frameCounter + 1;
 
         % Draw the Chosen Contrast
-        filterMode = 0;
-        Screen('DrawTextures', window, checkerTexture(on_stim(1)), [], dstRect, 45, filterMode);
-        
-        % Draw the Aperatue
-        Screen('DrawTextures', fullWindowMask, masktexc, [], dstRect)% draw circle aperature onto full screen aperature mask
-        Screen('DrawTexture', window, fullWindowMask); % draw mask
+        filterMode = 1; % Smooths sin grating
+        Screen('DrawTextures', window, gratingTexture(on_stim(1)), [], dstRect, 0, filterMode);
 
-
-        % Draw the Middle
-        Screen('FillOval', window, grey, stimRect);
-           
-        % Draw the fixation point     
+        % Draw the fixation
         Screen('FillOval', window, black, fixRect);
- 
-        % Flip to the screen
+        
         vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
 
         % Reverse the Texture Cue
