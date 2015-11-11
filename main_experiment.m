@@ -72,7 +72,7 @@ while continueExperiment == true
      bigRect = [0 0 340 340];
      smallRect = [0 0 8 8];
      fixRect = CenterRectOnPointd(smallRect, xCenter, yCenter); %Define fixation square
-     fixRect2 = CenterRectOnPointd(smallRect, xCenter, yCenter+18)
+     fixRect2 = CenterRectOnPointd(smallRect, xCenter, yCenter+26);
      stimRect = CenterRectOnPointd(bigRect, xCenter, yCenter); %Define stimulation area
     %-----------------------------------------------------------------------
 
@@ -105,7 +105,7 @@ while continueExperiment == true
         elseif keyInt == 31 % 2 KEY -> EXPERIMENT
             n = n+1;
                 % Call the experiment function
-                [run_name, run_data] = experiment_run(n, window, windowRect, fixRect, grey, black);
+                [run_name, run_data] = experiment_run(n, window, windowRect, fixRect2, grey, black);
 
                 % Test function output 
                 eval([run_name, '= run_data;']);
