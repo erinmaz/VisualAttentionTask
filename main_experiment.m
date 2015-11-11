@@ -72,6 +72,7 @@ while continueExperiment == true
      bigRect = [0 0 340 340];
      smallRect = [0 0 8 8];
      fixRect = CenterRectOnPointd(smallRect, xCenter, yCenter); %Define fixation square
+     fixRect2 = CenterRectOnPointd(smallRect, xCenter, yCenter+18)
      stimRect = CenterRectOnPointd(bigRect, xCenter, yCenter); %Define stimulation area
     %-----------------------------------------------------------------------
 

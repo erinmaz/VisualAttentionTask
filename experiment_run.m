@@ -32,16 +32,16 @@ run_data.correct = 0;
 run_data.total = 0;
 
 % Task Variables
-time_head = 5;      %60
-head_delay = 0;     %0
-lead_up = 5;        %5
+time_head = 0;      %56
+head_delay = 21;     %0
+lead_up = 0;        %3.5
 tail_delay = 0;     %0
 lead_down = 0;      %0
-time_tail = 5;     %35
-time_on = 20;       %20
-time_off = 5;      %55
+time_tail = 35;     %35 % IS THIS USED??
+time_on = 35;       %20
+time_off = 35;      %55
 cycles = 1;         % of EACH task (fixation or attention). Not really used
-cycles_interleaved = 3; % 4: number of interleaved attention + fixation cycles 
+cycles_interleaved = 1; % 4: number of interleaved attention + fixation cycles 
 quit_button = 20;       % 20 is the int value of 'q'
 response_button = 6;    % 6 is the int value of 'c' - right index finger (blue button)
 % Find using KbName('x') in command window
@@ -96,7 +96,6 @@ pointListIn(7,2) = pointListIn(1,2)+8;
 
 % Attention Arrow
 pointListOut = zeros(7,2);
-%yTrans = 18; % Vertical shift from center
 pointListOut(:,1) = xCenter;
 pointListOut(:,2) = yCenter + yTrans + 20;
 pointListOut(2,1) = pointListOut(1,1)-5;
@@ -111,6 +110,7 @@ pointListOut(6,1) = pointListOut(1,1)+2;
 pointListOut(6,2) = pointListOut(1,2)-8;
 pointListOut(7,1) = pointListOut(1,1)+5;
 pointListOut(7,2) = pointListOut(1,2)-8;
+
 
 % RANDOM REPEATING NUMBERS
 % Create the list of numbers that will flash on the screen
@@ -314,10 +314,10 @@ KbQueueStart();
 
 % Set Timer
 t_stop = GetSecs + time_head;
-
+rectColor = [0.8 0 0];
 % Draw the Fixation Box
 while GetSecs < t_stop
-    rectColor = [0.8 0 0];
+
     Screen('FillOval', window, black, fixRect);
     %Screen('FillPoly', window, rectColor, pointListIn);
     Screen('Flip', window);
@@ -361,123 +361,123 @@ for i = 1:cycles_interleaved
     %------------------
     
     % Set Timer
-    t_stop = GetSecs + lead_up;
+%     t_stop = GetSecs + lead_up;
+%     
+%     % Draw the Fixation Box & Arrow
+%     while GetSecs < t_stop
+%         rectColor = [0.8 0 0];
+%         Screen('FillOval', window, black, fixRect);
+%         Screen('FillPoly', window, rectColor, pointListIn);
+%         Screen('Flip', window);
+%         
+%         % Check If User Quits - press 'q' to quit
+%         [~, ~, keyCode] = KbCheck(-1); % -1 = check all keyboards
+%         keyName = KbName(logical(keyCode)); % returns key name as a string
+%         keyInt = KbName(keyName); % changes string to int
+%         if keyInt == quit_button;
+%             quit = 1;
+%         end
+%         if quit
+%             sca;
+%             return;
+%         end
+%     end
     
-    % Draw the Fixation Box & Arrow
-    while GetSecs < t_stop
-        rectColor = [0.8 0 0];
-        Screen('FillOval', window, black, fixRect);
-        Screen('FillPoly', window, rectColor, pointListIn);
-        Screen('Flip', window);
-        
-        % Check If User Quits - press 'q' to quit
-        [~, ~, keyCode] = KbCheck(-1); % -1 = check all keyboards
-        keyName = KbName(logical(keyCode)); % returns key name as a string
-        keyInt = KbName(keyName); % changes string to int
-        if keyInt == quit_button;
-            quit = 1;
-        end
-        if quit
-            sca;
-            return;
-        end
-    end
+        % DISPLAY NUMBERS (HEAD DELAY)
+        %-----------------------------
     
-    %     % DISPLAY NUMBERS (HEAD DELAY)
-    %     %-----------------------------
-    %
-    %     % Set Timer
-    %     t_stop = GetSecs + head_delay; % HEAD DELAY IS 0
-    %
-    %     % Time we want to wait before flipping to the next number
-    %     checkFlipTimeSecs = 1/num_freq;
-    %     checkFlipTimeFrames = round(checkFlipTimeSecs / ifi);
-    %
-    %     % Sync us to the vertical retrace
-    %     vbl = Screen('Flip', window);
-    %
-%         % Initialize loop
-%         frameCounter = 0;
-%         listCounter = 1; % place in the # list
-%         response_needed = false; % used for correct response count
-%         response_not_needed = true; % used for false alarm count
-    %
-    %     % FRAME LOOP
-    %     KbQueueFlush();
-    %     while GetSecs < t_stop
-    %         % Increment Counter
-    %         frameCounter = frameCounter + 1;
-    %
-    %         % DRAW STIMULI
-    %
-    %         if frameCounter + 5 >= checkFlipTimeFrames % 5 frame pause between numbers
-    %             % Draw just the fixation square
-    %             Screen('FillPoly', window, rectColor, pointListIn);
-    %             %Screen('FillOval', window, black, fixRect);
-    %         else
-    %             % Draw the number on top of the fixation square
-    %             Screen('TextSize', window, 32);
-    %             Screen('FillPoly', window, rectColor, pointListIn);
-    %             %Screen('FillRect', window, rectColor, fixRect);
-    %             DrawFormattedText(window, num2str(val_list(listCounter)), 'center', 'center');
-    %         end
-    %
-    %         % Flip to the screen
-    %         vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
-    %
-    %         % Advance to next number in list
-    %         if frameCounter == checkFlipTimeFrames
-    %             listCounter = listCounter + 1;
-    %             % Check if this number requires a response (new # = previous #)
-    %             if val_list(listCounter-1) == val_list(listCounter)
-    %                 response_needed = true;
-    %                 response_not_needed = false;
-    %                 % Assume "miss" until response is given
-    %                 cycle_data.fixation_response.miss = cycle_data.fixation_response.miss + 1;
-    %                 cycle_data.fixation_response.repeat_tests = cycle_data.fixation_response.repeat_tests + 1;
-    %                 % Check if previous number required a response
-    %             elseif (listCounter > 2) && (val_list(listCounter-2) == val_list(listCounter-1))
-    %                 response_not_needed = false; % leway time on false alarm trigger
-    %             else
-    %                 response_needed = false;
-    %                 response_not_needed = true;
-    %             end
-    %             frameCounter = 0;
-    %         end
-    %
-    %         % USER RESPONSE
-    %
-    %         % Check for a keyboard response (on EVERY frame)
-    %
-    %         %%%FIX THIS, DO FOR OTHER RESPONSESS
-    %         secs=GetSecs;
-    %         [pressed, firstpress]=KbQueueCheck(); %check response
-    %         if firstpress(quit_button) > 0; %if hit response key
-    %             % Quit condition
-    %             % if keyInt == quit_button;
-    %             quit = 1;
-    %             %         [keyIsDown, secs, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
-    %             %         keyName = KbName(logical(keyCode));%returns key name as a string
-    %             %         keyInt = KbName(keyName);%changes string to int
-    %
-    %             %elseif keyInt == response_button;
-    %         elseif firstpress(response_button) > 0;
-    %             % Correct response to stimulus
-    %             if response_needed
-    %                 cycle_data.fixation_response.time = [cycle_data.fixation_response.time secs];
-    %                 cycle_data.fixation_response.correct = cycle_data.fixation_response.correct + 1;
-    %                 cycle_data.fixation_response.miss = cycle_data.fixation_response.miss - 1;
-    %                 response_needed = false;
-    %                 % Incorrect response to stimulus
-    %             elseif response_not_needed
-    %                 cycle_data.fixation_response.false_alarm = cycle_data.fixation_response.false_alarm + 1;
-    %                 response_not_needed = false;
-    %             end
-    %             KbQueueFlush();
-    %         end
-    %
-    %         if quit, return; end
-    %     end
+        % Set Timer
+        t_stop = GetSecs + head_delay; % HEAD DELAY IS 0
+    
+        % Time we want to wait before flipping to the next number
+        checkFlipTimeSecs = 1/num_freq;
+        checkFlipTimeFrames = round(checkFlipTimeSecs / ifi);
+    
+        % Sync us to the vertical retrace
+        vbl = Screen('Flip', window);
+    
+        % Initialize loop
+        frameCounter = 0;
+        listCounter = 1; % place in the # list
+        response_needed = false; % used for correct response count
+        response_not_needed = true; % used for false alarm count
+    
+        % FRAME LOOP
+        KbQueueFlush();
+        while GetSecs < t_stop
+            % Increment Counter
+            frameCounter = frameCounter + 1;
+    
+            % DRAW STIMULI
+    
+            if frameCounter + 5 >= checkFlipTimeFrames % 5 frame pause between numbers
+                % Draw just the fixation square
+                %Screen('FillPoly', window, rectColor, pointListIn);
+                Screen('FillOval', window, black, fixRect);
+            else
+                % Draw the number on top of the fixation square
+                Screen('TextSize', window, 32);
+                %Screen('FillPoly', window, rectColor, pointListIn);
+                Screen('FillRect', window, rectColor, fixRect);
+                DrawFormattedText(window, num2str(val_list(listCounter)), 'center', 'center');
+            end
+    
+            % Flip to the screen
+            vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
+    
+            % Advance to next number in list
+            if frameCounter == checkFlipTimeFrames
+                listCounter = listCounter + 1;
+                % Check if this number requires a response (new # = previous #)
+                if val_list(listCounter-1) == val_list(listCounter)
+                    response_needed = true;
+                    response_not_needed = false;
+                    % Assume "miss" until response is given
+                    cycle_data.fixation_response.miss = cycle_data.fixation_response.miss + 1;
+                    cycle_data.fixation_response.repeat_tests = cycle_data.fixation_response.repeat_tests + 1;
+                    % Check if previous number required a response
+                elseif (listCounter > 2) && (val_list(listCounter-2) == val_list(listCounter-1))
+                    response_not_needed = false; % leway time on false alarm trigger
+                else
+                    response_needed = false;
+                    response_not_needed = true;
+                end
+                frameCounter = 0;
+            end
+    
+            % USER RESPONSE
+    
+            % Check for a keyboard response (on EVERY frame)
+    
+            %%%FIX THIS, DO FOR OTHER RESPONSESS
+            secs=GetSecs;
+            [pressed, firstpress]=KbQueueCheck(); %check response
+            if firstpress(quit_button) > 0; %if hit response key
+                % Quit condition
+                % if keyInt == quit_button;
+                quit = 1;
+                %         [keyIsDown, secs, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
+                %         keyName = KbName(logical(keyCode));%returns key name as a string
+                %         keyInt = KbName(keyName);%changes string to int
+    
+                %elseif keyInt == response_button;
+            elseif firstpress(response_button) > 0;
+                % Correct response to stimulus
+                if response_needed
+                    cycle_data.fixation_response.time = [cycle_data.fixation_response.time secs];
+                    cycle_data.fixation_response.correct = cycle_data.fixation_response.correct + 1;
+                    cycle_data.fixation_response.miss = cycle_data.fixation_response.miss - 1;
+                    response_needed = false;
+                    % Incorrect response to stimulus
+                elseif response_not_needed
+                    cycle_data.fixation_response.false_alarm = cycle_data.fixation_response.false_alarm + 1;
+                    response_not_needed = false;
+                end
+                KbQueueFlush();
+            end
+    
+            if quit, return; end
+        end
     
     % DISPLAY THE CYCLES
     %--------------------
@@ -651,13 +651,13 @@ for i = 1:cycles_interleaved
         
         if frameCounter + 5 >= checkFlipTimeFrames % 5 frame pause between numbers
             % Draw just the fixation square
-            Screen('FillPoly', window, rectColor, pointListIn);
-            %Screen('FillOval', window, black, fixRect);
+            %Screen('FillPoly', window, rectColor, pointListIn);
+            Screen('FillOval', window, black, fixRect);
         else
             % Draw the number on top of the fixation square
             Screen('TextSize', window, 32);
-            %Screen('FillRect', window, rectColor, fixRect);
-            Screen('FillPoly', window, rectColor, pointListIn);
+            Screen('FillRect', window, rectColor, fixRect);
+            %Screen('FillPoly', window, rectColor, pointListIn);
             DrawFormattedText(window, num2str(val_list(listCounter)), 'center', 'center');
         end
         
@@ -746,13 +746,13 @@ for i = 1:cycles_interleaved
         
         if frameCounter + 5 >= checkFlipTimeFrames % 5 frame pause between numbers
             % Draw just the fixation square
-            Screen('FillPoly', window, rectColor, pointListIn);
-            %Screen('FillRect', window, rectColor, fixRect);
+            %Screen('FillPoly', window, rectColor, pointListIn);
+            Screen('FillRect', window, rectColor, fixRect);
         else
             % Draw the number on top of the fixation square
             Screen('TextSize', window, 32);
-            Screen('FillPoly', window, rectColor, pointListIn);
-            %Screen('FillRect', window, rectColor, fixRect);
+            %Screen('FillPoly', window, rectColor, pointListIn);
+            Screen('FillRect', window, rectColor, fixRect);
             DrawFormattedText(window, num2str(val_list(listCounter)), 'center', 'center');
             %Screen('Flip', window);
         end
@@ -823,7 +823,7 @@ for i = 1:cycles_interleaved
     KbQueueFlush();
     % Draw the Fixation Box
     while GetSecs < t_stop
-        rectColor = [0.8 0 0];
+        %rectColor = [0.8 0 0];
         %Screen('FillPoly', window, rectColor, pointListIn);
         Screen('FillOval', window, rectColor, fixRect);
         Screen('Flip', window);

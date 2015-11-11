@@ -24,9 +24,9 @@ run_data = [];
 run_data.complete = 'no';
 
 % Task Variables
-time_head = 60;  % 20
-time_on = 24;   % 25
-time_off = 24;  % 25
+time_head = 56;  % 20
+time_on = 35;   % 25
+time_off = 35;  % 25
 cycles = 4;     % 7
 
 % Grating Variables
