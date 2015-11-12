@@ -34,15 +34,15 @@ run_data.total = 0;
 
 % Task Variables
 time_head = 0;      %
-head_delay = 21;     % Just numbers, no arrow or grating
+head_delay = 8;     % Just numbers, no arrow or grating
 lead_up = 0;        %
-tail_delay = 21;     % Just numbers, no arrow or grating
+tail_delay = 8;     % Just numbers, no arrow or grating
 lead_down = 0;      %
 time_tail = 0;      %
 time_on = head_delay+tail_delay;   % Numbers, grating, and arrow
 time_off = 0;       %
 cycles = 1;         % of EACH task (fixation or attention). Not really used
-cycles_interleaved = 4; % 4: number of interleaved attention + fixation cycles
+cycles_interleaved = 2; % 4: number of interleaved attention + fixation cycles
 quit_button = 20;       % 20 is the int value of 'q'
 response_button = 6;    % 6 is the int value of 'c' - right index finger (blue button)
 % Find using KbName('x') in command window
@@ -276,7 +276,7 @@ if device==0 %%error checking
     disp('No device by that name was detected');
 end
 
-keys=[response_button];
+keys=response_button;
 keylist=zeros(1,256);%%create a list of 256 zeros
 keylist(keys)=1;%%set keys you interested in to 1
 
@@ -318,6 +318,16 @@ while GetSecs < t_stop
     Screen('Flip', window);
     
     % Check If User Quits - press 'q' to quit
+    %     [~, firstpress]=KbQueueCheck();
+    %     if firstpress(quit_button) > 0; %if hit response key
+    %         quit = 1;
+    %     end
+    %     if quit
+    %         sca;
+    %         return;
+    %     end
+                                                                        
+    % We don't use the queue for quit
     [~, ~, keyCode] = KbCheck(-1); % -1 = check all keyboards
     keyName = KbName(logical(keyCode)); % returns key name as a string
     keyInt = KbName(keyName); % changes string to int
@@ -328,6 +338,7 @@ while GetSecs < t_stop
         sca;
         return;
     end
+    
 end
 
 listCounter = 1;
@@ -396,8 +407,8 @@ for i = 1:cycles_interleaved
     % Initialize loop
     frameCounter = 0;
     %listCounter = 1; % place in the # list
-    response_needed = false; % used for correct response count
-    response_not_needed = true; % used for false alarm count
+    %response_needed = false; % used for correct response count
+    %response_not_needed = true; % used for false alarm count
     
     % FRAME LOOP
     KbQueueFlush();
@@ -431,26 +442,41 @@ for i = 1:cycles_interleaved
         % USER RESPONSE
         
         % Check for a keyboard response (on EVERY frame)
-   %     secs=GetSecs;
+        %     secs=GetSecs;
         [~, firstpress]=KbQueueCheck(); %check response
-        if firstpress(quit_button) > 0; %if hit response key
-            quit = 1;
-        elseif firstpress(response_button) > 0;
+        
+        if firstpress(response_button) > 0;
             % Correct response to stimulus
-%             if response_needed
-%                 cycle_data.fixation_response.time = [cycle_data.fixation_response.time secs];
-%                 cycle_data.fixation_response.correct = cycle_data.fixation_response.correct + 1;
-%                 cycle_data.fixation_response.miss = cycle_data.fixation_response.miss - 1;
-%                 response_needed = false;
-                % Incorrect response to stimulus
- %           elseif response_not_needed
-                cycle_data.fixation_response.false_alarm = cycle_data.fixation_response.false_alarm + 1;
-                response_not_needed = false;
- %           end
+            %             if response_needed
+            %                 cycle_data.fixation_response.time = [cycle_data.fixation_response.time secs];
+            %                 cycle_data.fixation_response.correct = cycle_data.fixation_response.correct + 1;
+            %                 cycle_data.fixation_response.miss = cycle_data.fixation_response.miss - 1;
+            %                 response_needed = false;
+            % Incorrect response to stimulus
+            %           elseif response_not_needed
+            
+            % No responses are expected during head_delay
+            cycle_data.fixation_response.false_alarm = cycle_data.fixation_response.false_alarm + 1;
+           % response_not_needed = false;
+            %           end
             KbQueueFlush();
         end
-        
-        if quit, return; end
+        [~, ~, keyCode] = KbCheck(-1); % -1 = check all keyboards
+        keyName = KbName(logical(keyCode)); % returns key name as a string
+        keyInt = KbName(keyName); % changes string to int
+        if keyInt == quit_button;
+            quit = 1;
+        end
+        if quit
+            sca;
+            return;
+        end
+        %                 if firstpress(quit_button) > 0; %if hit response key
+        %             quit = 1;
+        %         if quit
+        %             sca;
+        %             return;
+        %         end
     end
     
     % DISPLAY THE CYCLES
@@ -507,7 +533,7 @@ for i = 1:cycles_interleaved
         % Draw the arrow
         if frameCounter_nums + numOffFrames >= checkFlipTimeFrames_nums % 5 frame pause between numbers
             Screen('FillPoly', window, rectColor, pointListIn);
-
+            
         else
             % Draw the number and arrow
             Screen('TextSize', window, 32);
@@ -590,10 +616,19 @@ for i = 1:cycles_interleaved
                 cycle_data.fixation_response.false_alarm = cycle_data.fixation_response.false_alarm + 1;
                 response_not_needed = false;
             end
-            
+            KbQueueFlush();
         end
-        KbQueueFlush();
+        
         % Check for a keyboard quit  (on EVERY frame)
+        %         if firstpress(quit_button) > 0; %if hit response key
+        %             quit = 1;
+        %         end
+        %
+        %         if quit
+        %             sca;
+        %             return;
+        %         end
+        %
         [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
         keyName = KbName(logical(keyCode));%returns key name as a string
         keyInt = KbName(keyName);%changes string to int
@@ -618,8 +653,8 @@ for i = 1:cycles_interleaved
     
     % Initialize loop
     frameCounter = 0;
-    response_needed = false; % used for correct response count
-    response_not_needed = true; % used for false alarm count
+    %response_needed = false; % used for correct response count
+    %response_not_needed = true; % used for false alarm count
     
     % FRAME LOOP
     KbQueueFlush();
@@ -631,9 +666,9 @@ for i = 1:cycles_interleaved
         % DRAW STIMULI
         
         if frameCounter + numOffFrames >= checkFlipTimeFrames % 200 ms pause between numbers
-
+            
         else
-            % Draw the number 
+            % Draw the number
             Screen('TextSize', window, 32);
             DrawFormattedText(window, num2str(unique_list(ulistCounter)), 'center', 'center');
         end
@@ -655,20 +690,30 @@ for i = 1:cycles_interleaved
         [~, firstpress]=KbQueueCheck(); %check response
         if firstpress(response_button) > 0;
             % Correct response to stimulus
-%            if response_needed
-%                 cycle_data.fixation_response.time = [cycle_data.fixation_response.time secs];
-%                 cycle_data.fixation_response.correct = cycle_data.fixation_response.correct + 1;
-%                 cycle_data.fixation_response.miss = cycle_data.fixation_response.miss - 1;
-%                 response_needed = false;
-                % Incorrect response to stimulus
-%            elseif response_not_needed
-                cycle_data.fixation_response.false_alarm = cycle_data.fixation_response.false_alarm + 1;
-                response_not_needed = false;
-%            end
+            %            if response_needed
+            %                 cycle_data.fixation_response.time = [cycle_data.fixation_response.time secs];
+            %                 cycle_data.fixation_response.correct = cycle_data.fixation_response.correct + 1;
+            %                 cycle_data.fixation_response.miss = cycle_data.fixation_response.miss - 1;
+            %                 response_needed = false;
+            % Incorrect response to stimulus
+            %            elseif response_not_needed
+            cycle_data.fixation_response.false_alarm = cycle_data.fixation_response.false_alarm + 1;
+            %response_not_needed = false;
+            %            end
+            KbQueueFlush();
             
         end
-        KbQueueFlush();
+        
         % Check for a keyboard quit  (on EVERY frame)
+        %         if firstpress(quit_button) > 0; %if hit response key
+        %             quit = 1;
+        %
+        %         end
+        %
+        %         if quit
+        %             sca;
+        %             return;
+        %         end
         [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
         keyName = KbName(logical(keyCode));%returns key name as a string
         keyInt = KbName(keyName);%changes string to int
@@ -694,8 +739,8 @@ for i = 1:cycles_interleaved
     
     % Initialize loop
     frameCounter = 0;
-    response_needed = false; % used for correct response count
-    response_not_needed = true; % used for false alarm count
+%    response_needed = false; % used for correct response count
+%    response_not_needed = true; % used for false alarm count
     
     % FRAME LOOP
     
@@ -721,33 +766,44 @@ for i = 1:cycles_interleaved
         % Advance to next number in list
         if frameCounter == checkFlipTimeFrames
             ulistCounter = ulistCounter + 1;
-            response_needed = false;
-            response_not_needed = true;
+%            response_needed = false;
+%            response_not_needed = true;
             frameCounter = 0;
         end
         
         % USER RESPONSE
         
         % Check for a keyboard response (on EVERY frame)
-        secs=GetSecs;
+       % secs=GetSecs;
         [~, firstpress]=KbQueueCheck(); %check response
         
         if firstpress(response_button) > 0;
             % Correct response to stimulus
-            if response_needed
-                cycle_data.fixation_response.time = [cycle_data.fixation_response.time secs];
-                cycle_data.fixation_response.correct = cycle_data.fixation_response.correct + 1;
-                cycle_data.fixation_response.miss = cycle_data.fixation_response.miss - 1;
-                response_needed = false;
-                % Incorrect response to stimulus
-            elseif response_not_needed
+%             if response_needed
+%                 cycle_data.fixation_response.time = [cycle_data.fixation_response.time secs];
+%                 cycle_data.fixation_response.correct = cycle_data.fixation_response.correct + 1;
+%                 cycle_data.fixation_response.miss = cycle_data.fixation_response.miss - 1;
+%                 response_needed = false;
+%                 % Incorrect response to stimulus
+%             elseif response_not_needed
                 cycle_data.fixation_response.false_alarm = cycle_data.fixation_response.false_alarm + 1;
-                response_not_needed = false;
-            end
+ %               response_not_needed = false;
+        %    end
+            KbQueueFlush();
         end
-        KbQueueFlush();
+        
         
         %check for a keyboard quit
+        %         if firstpress(quit_button) > 0; %if hit response key
+        %             quit = 1;
+        %
+        %         end
+        %
+        %         if quit
+        %             sca;
+        %             return;
+        %         end
+        
         [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
         keyName = KbName(logical(keyCode));%returns key name as a string
         keyInt = KbName(keyName);%changes string to int
@@ -769,10 +825,20 @@ for i = 1:cycles_interleaved
     KbQueueFlush();
     % Draw the Fixation Box
     while GetSecs < t_stop
-
+        
         Screen('Flip', window);
         
         % Check If User Quits - press 'q' to quit
+        %         [~, firstpress]=KbQueueCheck(); %check response
+        %         if firstpress(quit_button) > 0; %if hit response key
+        %             quit = 1;
+        %
+        %         end
+        %
+        %         if quit
+        %             sca;
+        %             return;
+        %         end
         [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
         keyName = KbName(logical(keyCode));%returns key name as a string
         keyInt = KbName(keyName);%changes string to int
@@ -804,6 +870,16 @@ for i = 1:cycles_interleaved
         Screen('Flip', window);
         
         % Check If User Quits - press 'q' to quit
+        %         [~, firstpress]=KbQueueCheck(); %check response
+        %         if firstpress(quit_button) > 0; %if hit response key
+        %             quit = 1;
+        %
+        %         end
+        %
+        %         if quit
+        %             sca;
+        %             return;
+        %         end
         [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
         keyName = KbName(logical(keyCode));%returns key name as a string
         keyInt = KbName(keyName);%changes string to int
@@ -885,9 +961,19 @@ for i = 1:cycles_interleaved
                 response_not_needed = false;
                 FAresetCounter = 0;
             end
+            KbQueueFlush();
         end
-        KbQueueFlush();
+        
         %check for keyboard quit
+        %         if firstpress(quit_button) > 0; %if hit response key
+        %             quit = 1;
+        %
+        %         end
+        %
+        %         if quit
+        %             sca;
+        %             return;
+        %         end
         [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
         keyName = KbName(logical(keyCode));%returns key name as a string
         keyInt = KbName(keyName);%changes string to int
@@ -900,7 +986,7 @@ for i = 1:cycles_interleaved
         end
         
     end
-   
+    
     
     % DISPLAY THE CYCLES
     %--------------------
@@ -971,7 +1057,7 @@ for i = 1:cycles_interleaved
         % Draw the fixation
         if frameCounter_nums + numOffFrames >= checkFlipTimeFrames_nums % 200 ms pause between numbers
             % Draw just the arrow
-
+            
             Screen('FillPoly', window, rectColor, pointListOut);
         else
             % Draw the number and the arrow
@@ -1058,8 +1144,17 @@ for i = 1:cycles_interleaved
                 response_not_needed = false;
                 FAresetCounter = 0;
             end
+            KbQueueFlush();
         end
-        KbQueueFlush();
+        %         if firstpress(quit_button) > 0; %if hit response key
+        %             quit = 1;
+        %
+        %         end
+        %
+        %         if quit
+        %             sca;
+        %             return;
+        %         end
         [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
         keyName = KbName(logical(keyCode));%returns key name as a string
         keyInt = KbName(keyName);%changes string to int
@@ -1129,10 +1224,19 @@ for i = 1:cycles_interleaved
             elseif response_not_needed
                 cycle_data.attention_response.false_alarm = cycle_data.attention_response.false_alarm + 1;
                 response_not_needed = false;
-                KbQueueFlush();
+                
             end
+            KbQueueFlush();
         end
-        KbQueueFlush();
+        %         if firstpress(quit_button) > 0; %if hit response key
+        %             quit = 1;
+        %
+        %         end
+        %
+        %         if quit
+        %             sca;
+        %             return;
+        %         end
         [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
         keyName = KbName(logical(keyCode));%returns key name as a string
         keyInt = KbName(keyName);%changes string to int
@@ -1208,6 +1312,7 @@ for i = 1:cycles_interleaved
         % Check for a keyboard response (on EVERY frame)
         
         %KbQueueFlush();
+        [~, firstpress]=KbQueueCheck(); %check response
         if firstpress(response_button) > 0;
             % No stimulus, only false alarms recorded
             if response_not_needed
@@ -1216,8 +1321,18 @@ for i = 1:cycles_interleaved
                 FAresetCounter = 0;
                 
             end
+            KbQueueFlush();
         end
-        KbQueueFlush();
+        %         if firstpress(quit_button) > 0; %if hit response key
+        %             quit = 1;
+        %
+        %         end
+        %
+        %         if quit
+        %             sca;
+        %             return;
+        %         end
+        %
         [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
         keyName = KbName(logical(keyCode));%returns key name as a string
         keyInt = KbName(keyName);%changes string to int
@@ -1256,6 +1371,16 @@ while GetSecs < t_stop
         sca;
         return;
     end
+    %     [~, firstpress]=KbQueueCheck(); %check response
+    %     if firstpress(quit_button) > 0; %if hit response key
+    %         quit = 1;
+    %
+    %     end
+    %
+    %     if quit
+    %         sca;
+    %         return;
+    %     end
 end
 % eval([cycle_name, '= cycle_data;']);
 % run_data.correct = run_data.correct + cycle_data.attention_response.correct;
@@ -1282,6 +1407,16 @@ while GetSecs < t_stop
         sca;
         return;
     end
+    %     [~, firstpress]=KbQueueCheck(); %check response
+    %     if firstpress(quit_button) > 0; %if hit response key
+    %         quit = 1;
+    %
+    %     end
+    %
+    %     if quit
+    %         sca;
+    %         return;
+    %     end
 end
 
 %-----------------------------------------------------------------------
