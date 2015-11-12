@@ -114,7 +114,6 @@ pointListOut(6,2) = pointListOut(1,2)-8;
 pointListOut(7,1) = pointListOut(1,1)+5;
 pointListOut(7,2) = pointListOut(1,2)-8;
 
-
 % RANDOM REPEATING NUMBERS
 % Create the list of numbers that will flash on the screen
 % Set the repeat intevals
@@ -128,31 +127,30 @@ repeat_val = val_list(6);
 val_list = [val_list repeat_val];
 
 % Add to the value list one non-repeating chunk at a time
-for i = repeat2Hz % Numbers flicker at 2Hz so we extend the repeat interval by 2
+for i = repeat2Hz % Numbers flicker at 2Hz so we multiply the repeat interval by 2
     triple = true;
-    double = true;
+    % double = true;
     % Add a smaller chunk with no repeats if i > 9
     if i > 9
-        while double
+        while triple
             list_append = randperm(9,9);
             if list_append(1) == val_list(length(val_list))
-                double = true;
+                triple = true;
             else
-                double = false;
+                triple = false;
             end
         end
         val_list = [val_list list_append];
-        i = i - 9;
+        smallchunk = i - 9;
+    else
+        smallchunk = i;
     end
     % Add the remaining chunk or small chunk
-    while triple  % Check that there are no triple repeats
-        list_append = randperm(9,i); % i non-repeating numbers between 1 and 9
-        if list_append(1) == val_list(length(val_list))
-            triple = true;
-        else
-            triple = false;
-        end
+    list_append = randperm(9,smallchunk);
+    while list_append(1) == val_list(length(val_list))
+        list_append = randperm(9,smallchunk);
     end
+    
     % Add the new section
     val_list = [val_list list_append];
     % Add the repeating value
@@ -461,7 +459,7 @@ for i = 1:cycles_interleaved
     % Initiate Cycle Loop
     %for j = 1:cycles
     
-    % STIMULUS ON
+    % STIMULUS ON (Fixation)
     %-------------
     
     % Set Timer
@@ -910,7 +908,7 @@ for i = 1:cycles_interleaved
     % Initiate Cycle Loop
     %for i = 1:cycles
     
-    % STIMULUS ON
+    % STIMULUS ON (Attention)
     %-------------
     
     % Set Timer
