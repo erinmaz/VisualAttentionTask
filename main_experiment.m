@@ -43,13 +43,55 @@ resp_mat = [];
 save (filename, 'resp_mat');%saves only the response matrix variable
 cd ..;
 
+% Open a window and get its attributes
+[window, windowRect] = PsychImaging('OpenWindow', screenNumber, grey);
+[screenXpixels, screenYpixels] = Screen('WindowSize', window);
+[xCenter, yCenter] = RectCenter(windowRect);
+
+% Draw the Wait Screen
+Screen('TextSize', window, 30);
+DrawFormattedText(window, 'Calculating. Please Wait...', 'center', 'center');
+Screen('Flip', window);
+
+checksize_fract = 0.06; %size of grating as a fraction of screen size
+trapezoid_fract = 0.07; %width of trapezoid (to smooth grating) as a fraction of screen size
+inner_circle_fract = 0.22;
+imSize = screenXpixels; %size of window
+dim = imSize/2;
+[x_ap, y_ap] = meshgrid(-dim:dim-1, -dim:dim-1);
+circle = ((x_ap.^2)+(y_ap.^2) <= (dim)^2); % outer circle
+circle2 = ((x_ap.^2)+(y_ap.^2) <= (imSize*inner_circle_fract)^2); % inner circle
+aperature = circle - circle2;
+trapwidth=screenXpixels*trapezoid_fract;
+trapinterval=1/trapwidth;
+trapvec = 0:trapinterval:1;
+[xtrap,ytrap] = meshgrid([trapvec,fliplr(trapvec)]);
+linkern = xtrap.*ytrap;
+aperature_smooth=(conv2(aperature,linkern,'same'));
+scale = max(aperature_smooth(:));
+aperature_smooth = aperature_smooth/scale;
+
+% Define aperature coordinates
+xg = screenXpixels / 2;
+yg = screenYpixels / 2;
+[s1, s2] = size(aperature_smooth);
+dstRect = CenterRectOnPointd([0 0 s1, s2], xg, yg);
+
+% Make 2d grating
+x = 1:imSize;
+x0 = (x / imSize) - .5;
+[xm, ym] = meshgrid(x0, x0);
+theta1 = 45; % Right slanted sin grating
+theta2 = 135; % Left slanted sin grating
+
+%check if lambda corresponds to visual angle in Moradi paper
+lambda = screenXpixels.*checksize_fract; % Wavelength (in px) determines check size
+sin_freq = imSize/lambda;
+
+
 %---------------------------------------------------------------------
 % DRAW THE MAIN MENU
 %---------------------------------------------------------------------
-% Open a window and get its attributes
-[window, windowRect] = PsychImaging('OpenWindow', screenNumber, grey);
-%[screenXpixels, screenYpixels] = Screen('WindowSize', window);
-[xCenter, yCenter] = RectCenter(windowRect);
 
 % Continue until escape is pressed
 
@@ -69,10 +111,10 @@ while continueExperiment == true
     %------------------------------------------------------------------------
     
     %DEBUG: Draw Box Test --------------------------------------------------
-    bigRect = [0 0 340 340];
+    %bigRect = [0 0 340 340];
     smallRect = [0 0 8 8];
     fixRect = CenterRectOnPointd(smallRect, xCenter, yCenter); %Define fixation square
-    stimRect = CenterRectOnPointd(bigRect, xCenter, yCenter); %Define stimulation area
+    %stimRect = CenterRectOnPointd(bigRect, xCenter, yCenter); %Define stimulation area
     %-----------------------------------------------------------------------
     
     % Wait for menu selection
@@ -91,7 +133,7 @@ while continueExperiment == true
         if keyInt == 30 % 1 KEY -> LOCALIZER
             n = n+1;
             % Call the localizer function
-            [run_name, run_data] = localizer_run(n, window, fixRect, stimRect, white, grey, black);
+            [run_name, run_data] = localizer_run( n, window, fixRect, black, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth);
             
             % Test function output
             eval([run_name, '= run_data;']);
@@ -104,7 +146,7 @@ while continueExperiment == true
         elseif keyInt == 31 % 2 KEY -> EXPERIMENT
             n = n+1;
             % Call the experiment function
-            [run_name, run_data] = experiment_run(n, window, windowRect, grey, fixationFirst);
+            [run_name, run_data] = experiment_run( n, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize);
             
             % Test function output
             eval([run_name, '= run_data;']);
@@ -117,7 +159,7 @@ while continueExperiment == true
         elseif keyInt == 32 % 3 KEY -> EXPERIMENT
             n = n+1;
             % Call the experiment function
-            [run_name, run_data] = experiment_run(n, window, windowRect, grey, attentionFirst);
+            [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize);
             
             % Test function output
             eval([run_name, '= run_data;']);
@@ -128,22 +170,17 @@ while continueExperiment == true
             respToBeMade = false;
             
         elseif keyInt == 41 % ESCAPE KEY -> END SESSION
-            
             continueExperiment = false;
             respToBeMade = false;
         end
     end
 end
 
-%-------------------------------------------------------------------------
-% END THE SESSION
-%-------------------------------------------------------------------------
 
 % Clear the screen.
 ShowCursor;
 close all;
 clear all;
 sca;
-
 end
 

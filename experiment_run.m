@@ -1,7 +1,7 @@
-function [ run_name, run_data ] = experiment_run( run_number, window, windowRect, grey, fixationFirst)
+function [ run_name, run_data ] = experiment_run( run_number, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize)
 % Edited Aug 10 2015, MM
 % Edited Nov 12, 2015 ELM
-% This function presents the experiment (control and attention conditions)
+% This function presents the experiment (fixation and attention conditions)
 % and saves the run number and response data.
 
 %   A block experiment with a peripheral flickering checkerboard and a
@@ -31,48 +31,62 @@ run_data.complete = 'no';
 run_data.correct = 0;
 run_data.total_trials = 0;
 run_data.false_alarm = 0;
+%run_data.flickertimes = [];
+%run_data.numberrepeattimes = [];
+run_data.numbers = [];
+run_data.numberstime = [];
+run_data.baseline_response.false_alarm = 0;
 
 % Task Variables
 head_delay = 21;     % Just numbers, no arrow or grating
 tail_delay = 21;     % Just numbers, no arrow or grating
 time_on = head_delay+tail_delay;   % Numbers, grating, and arrow
-cycles_interleaved = 4; % number of task blocks (equally divided between fixation and attention)
 quit_button = 20;       % 20 is the int value of 'q'
 response_button = 6;    % 6 is the int value of 'c' - right index finger (blue button)
 % Find using KbName('x') in command window
 
-% get condition order 
+numberFontSize = 36;
 
+%cycles_interleaved = 2; % number of task blocks (equally divided between fixation and attention)
+% set condition order - must have cell arrays with length = cycles_interleaved
+% if (fixationFirst)
+%     condition = {'fixation' 'attention'};
+% else
+%     condition = {'attention' 'fixation'};
+% end
+
+cycles_interleaved = 4; % number of task blocks (equally divided between fixation and attention)
+% set condition order - must have cell arrays with length = cycles_interleaved
 if (fixationFirst)
     condition = {'fixation' 'attention' 'fixation' 'attention'};
 else
     condition = {'attention' 'fixation' 'attention' 'fixation'};
 end
 
-% Window Variables
-[xCenter, yCenter] = RectCenter(windowRect);
-[screenXpixels, screenYpixels] = Screen('WindowSize', window);
 waitframes = 1; % time to wait in frames for a flip
 ifi = Screen('GetFlipInterval', window); % inter frame inverval
 
 % Stimulus Variables
 freq = 60; % checkerboard refresh rate in Hz
 num_freq = 2; % number frequency in Hz
-checksize_fract = 0.06; %size of grating as a fraction of screen size
-trapezoid_fract = 0.07; %width of trapezoid (to smooth grating) as a fraction of screen size
-inner_circle_fract = 0.22; %size of inner circle of aperature as a fraction of screen size
+
 translation = 0.98; % Determines baseline opacity of flicker mask
 amplitude = (1-translation)*.45; %flicker contrast is 45% of baseline contrast
 angle = 0;
 phase_index = 1; % controls movement of grating
 flicker_deg = 0; % controls sinusoidal flicker mask
-% Time we want to wait before reversing the contrast of the checkerboard
+
+% Time we want to wait before updating the grating
 checkFlipTimeSecs_stim = 1/freq; % moving grating refresh rate
 checkFlipTimeFrames_stim = round(checkFlipTimeSecs_stim / ifi);
+
 % Time we want to wait before flipping to the next number
 checkFlipTimeSecs_nums = 1/num_freq;
 checkFlipTimeFrames_nums = round(checkFlipTimeSecs_nums / ifi);
-numOffFrames = .2/ifi;
+
+% Numbers are off for 200ms
+numOff = 0.2;
+numOffFrames = numOff/ifi;
 
 
 %-----------------------------------------------------------------------
@@ -117,8 +131,8 @@ pointListOut(7,2) = pointListOut(1,2)-8;
 % RANDOM REPEATING NUMBERS
 % Create the list of numbers that will flash on the screen
 % Set the repeat intevals
-repeat = round(rand(1,1000)*4+3); % list of ints between 3 and 7 (seconds of random repeating values)
-repeatFlicker = round(rand(1,1000)*4+3); % list between 3 and 7 to ensure sufficient number of flickers per stim block
+repeat = round(rand(1,1000)*4+3); % list of ints between 3 and 7 (seconds between random repeating values)
+repeatFlicker = round(rand(1,1000)*4+3); % list of ints between 3 and 7 (seconds between flickers)
 repeat2Hz = repeat * 2;
 
 % Set the first section - each section has 6 to 14 non repeating numbers followed by one repeat.
@@ -129,7 +143,6 @@ val_list = [val_list repeat_val];
 % Add to the value list one non-repeating chunk at a time
 for i = repeat2Hz % Numbers flicker at 2Hz so we multiply the repeat interval by 2
     triple = true;
-    % double = true;
     % Add a smaller chunk with no repeats if i > 9
     if i > 9
         while triple
@@ -182,10 +195,8 @@ while length(unique_list) < ((head_delay + tail_delay + time_on) * cycles_interl
     unique_list = [unique_list list_append];
 end
 
-% RANDOM FRAME INTERVALS
-
-random_frames = round(repeatFlicker / ifi); %random frame values totaling 3 to 6 seconds
-flicker_count = 1; % index of random list
+random_frames = round(repeatFlicker / ifi); % Frames on which to initiate a flicker
+flicker_count = 1; % index of random_frames
 
 % WAIT SCREEN
 
@@ -201,45 +212,6 @@ DrawFormattedText(window, 'Calculating. Please Wait...', 'center', 'center');
 Screen('Flip', window);
 
 % PERIPHERAL GRATING
-
-% Define Aperature
-
-imSize = screenXpixels; %size of window
-dim = imSize/2;
-[xm, ym] = meshgrid(-dim:dim-1, -dim:dim-1);
-
-%circle = ((xm.^2)+(ym.^2) <= (dim-18)^2); % 445 is the radius of the outer circle
-circle = ((xm.^2)+(ym.^2) <= (dim)^2); % outer circle
-circle2 = ((xm.^2)+(ym.^2) <= (imSize*inner_circle_fract)^2); % inner circle
-aperature = circle - circle2;
-
-trapwidth=screenXpixels*trapezoid_fract;
-trapinterval=1/trapwidth;
-trapvec = 0:trapinterval:1;
-[xtrap,ytrap] = meshgrid([trapvec,fliplr(trapvec)]);
-linkern = xtrap.*ytrap;
-aperature_smooth=(conv2(aperature,linkern,'same'));
-scale = max(aperature_smooth(:));
-aperature_smooth = aperature_smooth/scale;
-
-% Define aperature coordinates
-xg = screenXpixels / 2;
-yg = screenYpixels / 2;
-[s1, s2] = size(aperature_smooth);
-dstRect = CenterRectOnPointd([0 0 s1, s2], xg, yg);
-
-% Make 2d grating
-
-x = 1:imSize;
-x0 = (x / imSize) - .5;
-[xm, ym] = meshgrid(x0, x0);
-theta1 = 45; % Right slanted sin grating
-theta2 = 135; % Left slanted sin grating
-
-%check if lambda corresponds to visual angle in Moradi paper
-lambda = screenXpixels*checksize_fract; % Wavelength (in px) determines check size
-sin_freq = imSize/lambda;
-
 textureList1 = zeros(1,240);
 for i = 1 : 240 % pre-draw 240 of these (one full phase) to save time during frames
     phase = i*1.5; % VARIES WITH TIME
@@ -287,14 +259,13 @@ keylist(keys)=1;%%set keys you interested in to 1
 
 % Draw the Instructions
 Screen('TextSize', window, 30);
-DrawFormattedText(window, 'Keep eyes fixated on the flashing numbers. \n\n When arrow points inward, \n press for repeating numbers. \n\n When arrow points outward, \n press for contrast flickers. \n\n Press the button when you are ready to start.', 'center', 'center');
+DrawFormattedText(window, 'Keep your eyes on the flashing numbers. \n\n When arrow points inward, \n press for repeating numbers. \n\n When arrow points outward, \n press for contrast flickers. \n\n Press the button when you are ready to start.', 'center', 'center');
 Screen('Flip', window);
 
 % Wait for participant to push button
 KbTriggerWait(KbName('c'), device);
 
-%Draw fixation
-%Screen('FillOval', window, black, fixRect);
+%Clear screen
 Screen('Flip', window);
 
 % Wait for Trigger
@@ -306,25 +277,32 @@ KbQueueStart();
 rectColor = [0.8 0 0];
 listCounter = 1;
 ulistCounter = 1;
+frameCounter = 0;
+
+% Sync us to the vertical retrace
+vbl = Screen('Flip', window);
 
 for i = 1:cycles_interleaved
     cycle_name = sprintf('run_data.cycle%d',i);
     cycle_data = [];
+    
     cycle_data.fixation_response.time = [];
     cycle_data.fixation_response.rt = [];
     cycle_data.fixation_response.correct = 0;
     cycle_data.fixation_response.miss = 0;
     cycle_data.fixation_response.false_alarm = 0;
     cycle_data.fixation_response.repeat_tests = 0;
+    cycle_data.fixation.repeatnumbertimes = [];
+    cycle_data.fixation.flickertimes = [];
+    
     cycle_data.attention_response.time = [];
     cycle_data.attention_response.rt = [];
     cycle_data.attention_response.correct = 0;
     cycle_data.attention_response.miss = 0;
     cycle_data.attention_response.false_alarm = 0;
     cycle_data.attention_response.flickers = 0;
-    
-    cycle_data.baseline_response.false_alarm = 0;
-    
+    cycle_data.attention.flickertimes = [];
+
     
     % DISPLAY NUMBERS (HEAD DELAY)
     %-----------------------------
@@ -332,29 +310,26 @@ for i = 1:cycles_interleaved
     % Set Timer
     t_stop = GetSecs + head_delay;
     
-    % Time we want to wait before flipping to the next number
-    checkFlipTimeSecs = 1/num_freq;
-    checkFlipTimeFrames = round(checkFlipTimeSecs / ifi);
-    
     % Sync us to the vertical retrace
-    vbl = Screen('Flip', window);
-    
-    % Initialize loop
-    frameCounter = 0;
-    
+    %vbl = Screen('Flip', window);
+
     % FRAME LOOP
     KbQueueFlush();
     while GetSecs < t_stop
         % Increment Counter
+        if frameCounter == 0
+            run_data.numbers = [run_data.numbers unique_list(ulistCounter)];
+            run_data.numberstime = [run_data.numberstime GetSecs];
+        end
         frameCounter = frameCounter + 1;
         
         % DRAW STIMULI
         
-        if frameCounter + numOffFrames >= checkFlipTimeFrames % 200 ms pause between numbers
+        if frameCounter + numOffFrames >= checkFlipTimeFrames_nums % 200 ms pause between numbers
             % Do nothing
         else
-            % Draw the number on top of the fixation square
-            Screen('TextSize', window, 32);
+            % Draw the number
+            Screen('TextSize', window, numberFontSize);
             DrawFormattedText(window, num2str(unique_list(ulistCounter)), 'center', 'center');
         end
         
@@ -362,7 +337,7 @@ for i = 1:cycles_interleaved
         vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
         
         % Advance to next number in list
-        if frameCounter == checkFlipTimeFrames
+        if frameCounter == checkFlipTimeFrames_nums
             ulistCounter = ulistCounter + 1;
             frameCounter = 0;
         end
@@ -370,26 +345,25 @@ for i = 1:cycles_interleaved
         % USER RESPONSE
         
         % Check for a keyboard response (on EVERY frame)
-        [~, firstpress]=KbQueueCheck(); %check response
-        if firstpress(response_button) > 0;
+        [~, firstpress] = KbQueueCheck(); %check response
+        if firstpress(response_button) > 0
             % No responses are expected during head_delay
-            cycle_data.baseline_response.false_alarm = cycle_data.baseline_response.false_alarm + 1;
+            run_data.baseline_response.false_alarm = run_data.baseline_response.false_alarm + 1;
             KbQueueFlush();
         end
         [~, ~, keyCode] = KbCheck(-1); % -1 = check all keyboards
         keyName = KbName(logical(keyCode)); % returns key name as a string
         keyInt = KbName(keyName); % changes string to int
-        if keyInt == quit_button;
+        if keyInt == quit_button
             quit = 1;
         end
         if quit
-            sca;
             return;
         end
         
     end
-    run_data.false_alarm = run_data.false_alarm + cycle_data.baseline_response.false_alarm;
-
+    %run_data.false_alarm = run_data.false_alarm + cycle_data.baseline_response.false_alarm;
+    
     if strcmp(condition(i),'fixation')
         
         % STIMULUS ON (Fixation)
@@ -398,28 +372,24 @@ for i = 1:cycles_interleaved
         % Set Timer
         t_stop = GetSecs + time_on;
         % Sync us to the vertical retrace
-        vbl = Screen('Flip', window);
+        %vbl = Screen('Flip', window);
         
         % Initialize loop
         starttime=GetSecs;
         frameCounter_stim = 0;
-        frameCounter_nums = 0;
         frameCounter_flicker = 0;
         response_needed = false; % used for correct response count
         response_not_needed = true; % used for false alarm count
         flicker = false;
-        %checkFlipTimeSecs = 1/num_freq;
-        %checkFlipTimeFrames = round(checkFlipTimeSecs / ifi);
         
         % FRAME LOOP
         KbQueueFlush();
+        
         % Initiate Contrast Flipping
         while GetSecs < t_stop
-            
-            % Increment Counter
-            frameCounter_stim = frameCounter_stim + 1;
-            frameCounter_nums = frameCounter_nums + 1;
+            frameCounter = frameCounter + 1;
             frameCounter_flicker = frameCounter_flicker + 1;
+            frameCounter_stim = frameCounter_stim + 1;
             
             % DRAW STIMULI
             
@@ -438,24 +408,29 @@ for i = 1:cycles_interleaved
             Screen('FillOval', window, greyTrans, flickerRect);
             
             % Draw the arrow
-            if frameCounter_nums + numOffFrames >= checkFlipTimeFrames_nums % 5 frame pause between numbers
+            if frameCounter + numOffFrames >= checkFlipTimeFrames_nums % pause between numbers
                 Screen('FillPoly', window, rectColor, pointListIn);
                 
             else
                 % Draw the number and arrow
-                Screen('TextSize', window, 32);
+                Screen('TextSize', window, numberFontSize);
                 Screen('FillPoly', window, rectColor, pointListIn);
                 DrawFormattedText(window, num2str(val_list(listCounter)), 'center', 'center');
+               
+                %run_data.numberrepeattimes = [run_data.numberrepeattimes GetSecs];
             end
             
             % Flip to the screen
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
             % Check if a flicker should start
-            if frameCounter_flicker == random_frames(flicker_count)
-                flicker = true;
-                flicker_count = flicker_count + 1;
-                flicker_deg = 0;
+            if GetSecs + 1 <= t_stop % Only if there's enough time
+                if frameCounter_flicker == random_frames(flicker_count)
+                    flicker = true;
+                    flicker_count = flicker_count + 1;
+                    flicker_deg = 0;
+                    cycle_data.fixation.flickertimes = [cycle_data.fixation.flickertimes GetSecs];
+                end
             end
             
             % Determine if flicker is over
@@ -480,13 +455,17 @@ for i = 1:cycles_interleaved
             end
             
             % Advance to next number in list
-            if frameCounter_nums == checkFlipTimeFrames_nums
+            if frameCounter == checkFlipTimeFrames_nums
                 listCounter = listCounter + 1;
-                newnum=1;
+                frameCounter = 0;
+                run_data.numbers = [run_data.numbers val_list(listCounter)];
+                run_data.numberstime = [run_data.numberstime GetSecs];
+                
                 % Check if this number requires a response (new # = previous #)
                 if val_list(listCounter-1) == val_list(listCounter)
-                    if newnum
+                    if frameCounter == 0
                         starttime=GetSecs;
+                        cycle_data.fixation.repeatnumbertimes = [cycle_data.fixation.repeatnumbertimes starttime];
                     end
                     response_needed = true;
                     response_not_needed = false;
@@ -496,21 +475,17 @@ for i = 1:cycles_interleaved
                     % Check if previous number required a response
                 elseif (listCounter > 2) && (val_list(listCounter-2) == val_list(listCounter-1))
                     response_not_needed = false; % leeway time on false alarm trigger
+                    response_needed = true;
                 else
                     response_needed = false;
                     response_not_needed = true;
                 end
-                frameCounter_nums = 0;
-            else
-                newnum=0;
             end
             
             % USER RESPONSE
             secs=GetSecs;
             [~, firstpress]=KbQueueCheck(); %check response
-            if firstpress(response_button) > 0;
-                newnum=0;
-                
+            if firstpress(response_button) > 0
                 % Correct response to stimulus
                 if response_needed
                     cycle_data.fixation_response.time = [cycle_data.fixation_response.time secs];
@@ -530,14 +505,14 @@ for i = 1:cycles_interleaved
             [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
             keyName = KbName(logical(keyCode));%returns key name as a string
             keyInt = KbName(keyName);%changes string to int
-            if keyInt == quit_button;
+            if keyInt == quit_button
                 quit = 1;
             end
             if quit
-                sca;
                 return;
             end
             
+
         end
         
         eval([cycle_name, '= cycle_data;']);
@@ -553,24 +528,18 @@ for i = 1:cycles_interleaved
         % Set Timer
         t_stop = GetSecs + time_on;
         
+        % Sync us to the vertical retrace
+        %vbl = Screen('Flip', window);
+        
         % Stimulus Variables
         angle = 0;
         phase_index = 1; % controls movement of grating
         flicker_deg = 0; % controls sinusoidal flicker mask
-        % Time we want to wait before advancing the phase of the grating
-        checkFlipTimeSecs_stim = 1/freq; % moving grating refresh rate
-        checkFlipTimeFrames_stim = round(checkFlipTimeSecs_stim / ifi);
-        % Time we want to wait before flipping to the next number
-        checkFlipTimeSecs_nums = 1/num_freq;
-        checkFlipTimeFrames_nums = round(checkFlipTimeSecs_nums / ifi);
-        
-        % Sync us to the vertical retrace
-        vbl = Screen('Flip', window);
         
         % Initialize loop
         starttime=GetSecs;
         frameCounter_stim = 0;
-        frameCounter_nums = 0;
+        %frameCounter = 0;
         frameCounter_flicker = 0;
         response_needed = false; % used for correct response count
         response_not_needed = true; % used for false alarm count
@@ -578,13 +547,13 @@ for i = 1:cycles_interleaved
         flicker_response_block = false;
         
         KbQueueFlush();
+
         % FRAME LOOP
-        
         while GetSecs < t_stop
-            
+
             % Increment Counter
             frameCounter_stim = frameCounter_stim + 1;
-            frameCounter_nums = frameCounter_nums + 1;
+            frameCounter = frameCounter + 1;
             frameCounter_flicker = frameCounter_flicker + 1;
             
             % DRAW STIMULI
@@ -603,12 +572,12 @@ for i = 1:cycles_interleaved
             Screen('FillOval', window, greyTrans, flickerRect);
             
             % Draw the fixation
-            if frameCounter_nums + numOffFrames >= checkFlipTimeFrames_nums % 200 ms pause between numbers
+            if frameCounter + numOffFrames >= checkFlipTimeFrames_nums % 200 ms pause between numbers
                 % Draw just the arrow
                 Screen('FillPoly', window, rectColor, pointListOut);
             else
                 % Draw the number and the arrow
-                Screen('TextSize', window, 32);
+                Screen('TextSize', window, numberFontSize);
                 DrawFormattedText(window, num2str(unique_list(ulistCounter)), 'center', 'center');
                 Screen('FillPoly', window, rectColor, pointListOut);
             end
@@ -626,6 +595,7 @@ for i = 1:cycles_interleaved
                     response_needed = true;
                     response_not_needed = false;
                     starttime=GetSecs;
+                    cycle_data.attention.flickertimes = [cycle_data.attention.flickertimes starttime];
                     % Assume miss untill correct response given
                     cycle_data.attention_response.miss = cycle_data.attention_response.miss + 1;
                 end
@@ -662,9 +632,11 @@ for i = 1:cycles_interleaved
             end
             
             % Advance to next number in list
-            if frameCounter_nums == checkFlipTimeFrames_nums
+            if frameCounter == checkFlipTimeFrames_nums
                 ulistCounter = ulistCounter + 1;
-                frameCounter_nums = 0;
+                frameCounter = 0;
+                run_data.numbers = [run_data.numbers unique_list(ulistCounter)];
+                run_data.numberstime = [run_data.numberstime GetSecs];
             end
             
             % USER RESPONSE
@@ -672,7 +644,8 @@ for i = 1:cycles_interleaved
             % Check for a keyboard response (on EVERY frame)
             secs=GetSecs;
             [~, firstpress]=KbQueueCheck(); %check response
-            if firstpress(response_button) > 0;
+            if firstpress(response_button) > 0
+                
                 % Correct response to stimulus
                 if response_needed
                     cycle_data.attention_response.rt = [cycle_data.attention_response.rt (secs-starttime)];
@@ -680,7 +653,8 @@ for i = 1:cycles_interleaved
                     cycle_data.attention_response.correct = cycle_data.attention_response.correct + 1;
                     cycle_data.attention_response.miss = cycle_data.attention_response.miss - 1;
                     response_needed = false;
-                % Incorrect response to stimulus
+                    
+                    % Incorrect response to stimulus
                 elseif response_not_needed
                     cycle_data.attention_response.false_alarm = cycle_data.attention_response.false_alarm + 1;
                     response_not_needed = false;
@@ -690,11 +664,10 @@ for i = 1:cycles_interleaved
             [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
             keyName = KbName(logical(keyCode));%returns key name as a string
             keyInt = KbName(keyName);%changes string to int
-            if keyInt == quit_button;
+            if keyInt == quit_button
                 quit = 1;
             end
             if quit
-                sca;
                 return;
             end
         end
@@ -711,31 +684,29 @@ for i = 1:cycles_interleaved
     % Set Timer
     t_stop = GetSecs + tail_delay;
     
-    % Time we want to wait before flipping to the next number
-    checkFlipTimeSecs = 1/num_freq;
-    checkFlipTimeFrames = round(checkFlipTimeSecs / ifi);
-    
     % Sync us to the vertical retrace
-    vbl = Screen('Flip', window);
+    %vbl = Screen('Flip', window);
     
     % Initialize loop
-    frameCounter = 0;
-    %response_needed = false; % used for correct response count
+    %frameCounter = 0;
     response_not_needed = true; % used for false alarm count
     
     % FRAME LOOP
     KbQueueFlush();
+    
+    
     while GetSecs < t_stop
+
         % Increment Counter
         frameCounter = frameCounter + 1;
         
         % DRAW STIMULI
         
-        if frameCounter + numOffFrames >= checkFlipTimeFrames % 200 ms pause between numbers
+        if frameCounter + numOffFrames >= checkFlipTimeFrames_nums % 200 ms pause between numbers
             % do nothing
         else
             % Draw the number
-            Screen('TextSize', window, 32);
+            Screen('TextSize', window, numberFontSize);
             DrawFormattedText(window, num2str(unique_list(ulistCounter)), 'center', 'center');
         end
         
@@ -743,40 +714,40 @@ for i = 1:cycles_interleaved
         vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
         
         % Advance to next number in list
-        if frameCounter == checkFlipTimeFrames
+        if frameCounter == checkFlipTimeFrames_nums
             ulistCounter = ulistCounter + 1;
             frameCounter = 0;
+            run_data.numbers = [run_data.numbers unique_list(ulistCounter)];
+            run_data.numberstime = [run_data.numberstime GetSecs];
         end
         
         % USER RESPONSE
         % Check for a keyboard response (on EVERY frame)
         [~, firstpress]=KbQueueCheck(); %check response
-        if firstpress(response_button) > 0;
+        if firstpress(response_button) > 0
+            
             % No stimulus, only false alarms recorded
             if response_not_needed
-                cycle_data.baseline_response.false_alarm = cycle_data.baseline_response.false_alarm + 1;
+                run_data.baseline_response.false_alarm = run_data.baseline_response.false_alarm + 1;
                 response_not_needed = false;
             end
             KbQueueFlush();
         end
+        
         [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
         keyName = KbName(logical(keyCode));%returns key name as a string
         keyInt = KbName(keyName);%changes string to int
-        if keyInt == quit_button;
+        if keyInt == quit_button
             quit = 1;
         end
         if quit
-            sca;
             return;
         end
     end
-    run_data.false_alarm = run_data.false_alarm + cycle_data.baseline_response.false_alarm;
+    
+    %run_data.false_alarm = run_data.false_alarm + cycle_data.baseline_response.false_alarm;
 end
 
-
-%-----------------------------------------------------------------------
-% END THE RUN
-%-----------------------------------------------------------------------
 KbQueueRelease();
 ShowCursor;
 run_data.complete = 'yes';
