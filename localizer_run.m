@@ -42,7 +42,7 @@ freq = 7; % checkerboard frequency in Hz
 % DRAW INSTRUCTIONS, WAIT FOR TRIGGER
 %-----------------------------------------------------------------------
 % Prepare the Window
-%HideCursor;
+HideCursor;
 Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');% Set up alpha-blending for smooth (anti-aliased) lines
 
 % Draw the Instructions
@@ -53,9 +53,10 @@ Screen('Flip', window);
 imSize = screenXpixels; %size of window
 dim = imSize/2;
 [xm, ym] = meshgrid(-dim:dim-1, -dim:dim-1);
+inner_circle_fract = 0.22; 
 
 circle = ((xm.^2)+(ym.^2) <= (dim)^2); % outer circle
-circle2 = ((xm.^2)+(ym.^2) <= (imSize*0.22)^2); % inner circle
+circle2 = ((xm.^2)+(ym.^2) <= (imSize*inner_circle_fract)^2); % inner circle
 aperature = circle - circle2;
 
 trapwidth=screenXpixels*0.07;

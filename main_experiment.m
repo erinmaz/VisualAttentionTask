@@ -1,7 +1,5 @@
 function main_experiment
 % Edited Aug 14 2015, MM
-% ----- Remember to check timing and spatial location on scanner.  If it
-% doesn't work, Bec can help!
 
 % This is the main file for the visual attention task shifting attention
 % from central vision to peripheral vision. Run experiment from here.
@@ -9,10 +7,10 @@ function main_experiment
 %   This function draws the main menu and waits for a user selection. It
 %   then passes the selection to one of the action functions.
 %   INSTRUCTIONS:   ESC to end the experiment
-%                   Q to quit a run
-%                   1 or 2 to start a new run
-%                   A to respond
-%                   any key for trigger
+%                   q to quit a run
+%                   1, 2, or 3 to start a new run
+%                   c to respond (blue button)
+%                   T for trigger
 
 % Define global variables
 global quit
@@ -35,6 +33,8 @@ screenNumber = max(screens); %Draw to external screen
 white = WhiteIndex(screenNumber);
 black = BlackIndex(screenNumber);
 grey = white / 2;
+fixationFirst = 1;
+attentionFirst = 0;
 
 % Create a file to store response data
 cd log;
@@ -56,69 +56,81 @@ cd ..;
 continueExperiment = true;
 n = 0; % Run number iterator
 
-while continueExperiment == true 
+while continueExperiment == true
     % Display the main menu
     Screen('TextSize', window, 48);
-    DrawFormattedText(window, '1 - Localizer \n\n 2 - Experiment','center', 'center', black);
+    DrawFormattedText(window, '1 - Localizer \n\n 2 - Task 1 \n\n 3 - Task 2','center', 'center', black);
     %fpintf('\nmain menu'); % This line isn't working, I dont know how to update
     %command window
     Screen('Flip', window);
-
+    
     %------------------------------------------------------------------------
     % WAIT FOR THE USER TO MAKE A SELECTION AND CALL THEIR SELECTION
     %------------------------------------------------------------------------
-
+    
     %DEBUG: Draw Box Test --------------------------------------------------
-     bigRect = [0 0 340 340];
-     smallRect = [0 0 8 8];
-     fixRect = CenterRectOnPointd(smallRect, xCenter, yCenter); %Define fixation square
-     fixRect2 = CenterRectOnPointd(smallRect, xCenter, yCenter+26);
-     stimRect = CenterRectOnPointd(bigRect, xCenter, yCenter); %Define stimulation area
+    bigRect = [0 0 340 340];
+    smallRect = [0 0 8 8];
+    fixRect = CenterRectOnPointd(smallRect, xCenter, yCenter); %Define fixation square
+    stimRect = CenterRectOnPointd(bigRect, xCenter, yCenter); %Define stimulation area
     %-----------------------------------------------------------------------
-
+    
     % Wait for menu selection
     respToBeMade = true;
-
+    
     while respToBeMade == true
         % Wait for the person to press a key
-        [secs, keyCode, deltaSecs] = KbWait(-1); % -1 causes it to check all keyboards
+        [~, keyCode, ~] = KbWait(-1); % -1 causes it to check all keyboards
         
         % Identify the key
         keyName = KbName(logical(keyCode));%returns key name as a string
         keyInt = KbName(keyName);%returns the int value of the key
-
+        
         % If a menu key is pressed, complete the menu action
-
+        
         if keyInt == 30 % 1 KEY -> LOCALIZER
             n = n+1;
             % Call the localizer function
             [run_name, run_data] = localizer_run(n, window, fixRect, stimRect, white, grey, black);
-
-            % Test function output 
+            
+            % Test function output
             eval([run_name, '= run_data;']);
             cd log;
-            save (filename, 'resp_mat'); 
+            save (filename, 'resp_mat');
             cd ..;
-
-            respToBeMade = false;
-
-        elseif keyInt == 31 % 2 KEY -> EXPERIMENT
-            n = n+1;
-                % Call the experiment function
-                [run_name, run_data] = experiment_run(n, window, windowRect, fixRect2, grey, black);
-
-                % Test function output 
-                eval([run_name, '= run_data;']);
-                cd log;
-                save (filename, 'resp_mat'); 
-                cd ..;
             
             respToBeMade = false;
-
+            
+        elseif keyInt == 31 % 2 KEY -> EXPERIMENT
+            n = n+1;
+            % Call the experiment function
+            [run_name, run_data] = experiment_run(n, window, windowRect, grey, fixationFirst);
+            
+            % Test function output
+            eval([run_name, '= run_data;']);
+            cd log;
+            save (filename, 'resp_mat');
+            cd ..;
+            
+            respToBeMade = false;
+            
+        elseif keyInt == 32 % 3 KEY -> EXPERIMENT
+            n = n+1;
+            % Call the experiment function
+            [run_name, run_data] = experiment_run(n, window, windowRect, grey, attentionFirst);
+            
+            % Test function output
+            eval([run_name, '= run_data;']);
+            cd log;
+            save (filename, 'resp_mat');
+            cd ..;
+            
+            respToBeMade = false;
+            
         elseif keyInt == 41 % ESCAPE KEY -> END SESSION
-
+            
             continueExperiment = false;
-            respToBeMade = false; 
+            respToBeMade = false;
         end
     end
 end
