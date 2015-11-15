@@ -100,8 +100,8 @@ n = 0; % Run number iterator
 
 while continueExperiment == true
     % Display the main menu
-    Screen('TextSize', window, 48);
-    DrawFormattedText(window, '1 - Localizer \n\n 2 - Task 1 \n\n 3 - Task 2','center', 'center', black);
+    Screen('TextSize', window, 36);
+    DrawFormattedText(window, '1 - Localizer \n\n2 - Task 1 \n\n3 - Task 2\n\n4 - Practice task','center', 'center', black);
     %fpintf('\nmain menu'); % This line isn't working, I dont know how to update
     %command window
     Screen('Flip', window);
@@ -160,6 +160,19 @@ while continueExperiment == true
             n = n+1;
             % Call the experiment function
             [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize);
+            
+            % Test function output
+            eval([run_name, '= run_data;']);
+            cd log;
+            save (filename, 'resp_mat');
+            cd ..;
+            
+            respToBeMade = false;
+            
+        elseif keyInt == 33 % 4 KEY -> EXPERIMENT
+            n = n+1;
+            % Call the experiment function
+            [run_name, run_data] = experiment_practice( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize);
             
             % Test function output
             eval([run_name, '= run_data;']);
