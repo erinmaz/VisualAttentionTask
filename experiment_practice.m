@@ -298,6 +298,7 @@ for i = 1:cycles_interleaved
     cycle_data.attention_response.flickers = 0;
     cycle_data.attention.flickertimes = [];
 
+    cycle_data.baseline_response.false_alarm = 0;
     
     % DISPLAY NUMBERS (HEAD DELAY)
     %-----------------------------
@@ -343,7 +344,7 @@ for i = 1:cycles_interleaved
         [~, firstpress] = KbQueueCheck(device); %check response
         if firstpress(response_button) > 0
             % No responses are expected during head_delay
-            run_data.baseline_response.false_alarm = run_data.baseline_response.false_alarm + 1;
+            cycle_data.baseline_response.false_alarm = cycle_data.baseline_response.false_alarm + 1;
             KbQueueFlush(device);
         end
         [~, ~, keyCode] = KbCheck(-1); % -1 = check all keyboards
@@ -357,7 +358,7 @@ for i = 1:cycles_interleaved
         end
         
     end
-    %run_data.false_alarm = run_data.false_alarm + cycle_data.baseline_response.false_alarm;
+    %run_data.false_alarm = run_data.false_alarm + run_data.baseline_response.false_alarm;
     
     if strcmp(condition(i),'fixation')
         
@@ -723,7 +724,7 @@ for i = 1:cycles_interleaved
             
             % No stimulus, only false alarms recorded
             if response_not_needed
-                run_data.baseline_response.false_alarm = run_data.baseline_response.false_alarm + 1;
+                cycle_data.baseline_response.false_alarm = cycle_data.baseline_response.false_alarm + 1;
                 response_not_needed = false;
             end
             KbQueueFlush(device);
@@ -740,7 +741,7 @@ for i = 1:cycles_interleaved
         end
     end
     
-    %run_data.false_alarm = run_data.false_alarm + cycle_data.baseline_response.false_alarm;
+    run_data.false_alarm = run_data.false_alarm + cycle_data.baseline_response.false_alarm;
 end
 
 KbQueueRelease();

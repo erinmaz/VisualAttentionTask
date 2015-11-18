@@ -358,7 +358,7 @@ for i = 1:cycles_interleaved
         end
         
     end
-    %run_data.false_alarm = run_data.false_alarm + cycle_data.baseline_response.false_alarm;
+    run_data.false_alarm = run_data.false_alarm + run_data.baseline_response.false_alarm;
     
     if strcmp(condition(i),'fixation')
         
@@ -741,7 +741,7 @@ for i = 1:cycles_interleaved
         end
     end
     
-    %run_data.false_alarm = run_data.false_alarm + cycle_data.baseline_response.false_alarm;
+    run_data.false_alarm = run_data.false_alarm + run_data.baseline_response.false_alarm;
 end
 
 KbQueueRelease();
