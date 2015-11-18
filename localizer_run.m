@@ -1,4 +1,4 @@
-function [ run_name, run_data ] = localizer_run( run_number, window, fixRect, black, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth)
+function [ run_name, run_data ] = localizer_run( run_number, window, fixRect, black, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth,deviceString)
 % Edited Aug 14 2015, MM
 % This function presents the localizer and saves the run number.
 
@@ -14,17 +14,13 @@ function [ run_name, run_data ] = localizer_run( run_number, window, fixRect, bl
 global quit
 quit = 0;
 
-%deviceString = 'Apple Internal Keyboard / Trackpad';
-deviceString = 'Dell USB Entry Keyboard';
-%deviceString = 'Lumina Keyboard';
-
 % Output Variables
 run_name = sprintf('resp_mat.run%d_localizer',run_number);
 run_data = [];
 run_data.complete = 'no';
 
 % Task Variables
-time_head = 56;  % 20
+time_head = 35;  % 20
 time_on = 35;   % 25
 time_off = 35;  % 25
 cycles = 4;     % 7

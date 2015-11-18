@@ -21,6 +21,11 @@ clear all;
 % Psychtoolbox default settings
 PsychDefaultSetup(2);
 
+% SELECT RESPONSE DEVICE
+%deviceString = 'Apple Internal Keyboard / Trackpad';
+deviceString = 'Dell USB Entry Keyboard';
+%deviceString = 'Lumina Keyboard';
+
 % Perform sync test to avoid flicker slowing when connected to projector. 0
 % = do NOT perform sync test. 1 = DO perform sync test.
 % ERIN - I THINK THIS IS BACKWARDS
@@ -133,7 +138,7 @@ while continueExperiment == true
         if keyInt == 30 % 1 KEY -> LOCALIZER
             n = n+1;
             % Call the localizer function
-            [run_name, run_data] = localizer_run( n, window, fixRect, black, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth);
+            [run_name, run_data] = localizer_run( n, window, fixRect, black, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth,deviceString);
             
             % Test function output
             eval([run_name, '= run_data;']);
@@ -146,7 +151,7 @@ while continueExperiment == true
         elseif keyInt == 31 % 2 KEY -> EXPERIMENT
             n = n+1;
             % Call the experiment function
-            [run_name, run_data] = experiment_run( n, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize);
+            [run_name, run_data] = experiment_run( n, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString);
             
             % Test function output
             eval([run_name, '= run_data;']);
@@ -159,7 +164,7 @@ while continueExperiment == true
         elseif keyInt == 32 % 3 KEY -> EXPERIMENT
             n = n+1;
             % Call the experiment function
-            [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize);
+            [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString);
             
             % Test function output
             eval([run_name, '= run_data;']);
@@ -172,7 +177,7 @@ while continueExperiment == true
         elseif keyInt == 33 % 4 KEY -> EXPERIMENT
             n = n+1;
             % Call the experiment function
-            [run_name, run_data] = experiment_practice( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize);
+            [run_name, run_data] = experiment_practice( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString);
             
             % Test function output
             eval([run_name, '= run_data;']);

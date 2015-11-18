@@ -1,4 +1,4 @@
-function [ run_name, run_data ] = experiment_run( run_number, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize)
+function [ run_name, run_data ] = experiment_practice( run_number, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString)
 % Edited Aug 10 2015, MM
 % Edited Nov 12, 2015 ELM
 % This function presents the experiment (fixation and attention conditions)
@@ -18,11 +18,6 @@ function [ run_name, run_data ] = experiment_run( run_number, window, grey, fixa
 %-----------------------------------------------------------------------
 global quit
 quit = 0;
-
-% SELECT RESPONSE DEVICE
-%deviceString = 'Apple Internal Keyboard / Trackpad';
-deviceString = 'Dell USB Entry Keyboard';
-%deviceString = 'Lumina Keyboard';
 
 % Output Variables
 run_name = sprintf('resp_mat.run%d_experiment',run_number);
@@ -273,7 +268,7 @@ KbTriggerWait(KbName('T'), device);
 
 % Set up queue for responses
 KbQueueCreate(device,keylist);%%make queue
-KbQueueStart();
+KbQueueStart(device);
 rectColor = [0.8 0 0];
 listCounter = 1;
 ulistCounter = 1;
@@ -314,7 +309,7 @@ for i = 1:cycles_interleaved
     %vbl = Screen('Flip', window);
 
     % FRAME LOOP
-    KbQueueFlush();
+    KbQueueFlush(device);
     while GetSecs < t_stop
         % Increment Counter
         if frameCounter == 0
@@ -345,11 +340,11 @@ for i = 1:cycles_interleaved
         % USER RESPONSE
         
         % Check for a keyboard response (on EVERY frame)
-        [~, firstpress] = KbQueueCheck(); %check response
+        [~, firstpress] = KbQueueCheck(device); %check response
         if firstpress(response_button) > 0
             % No responses are expected during head_delay
             run_data.baseline_response.false_alarm = run_data.baseline_response.false_alarm + 1;
-            KbQueueFlush();
+            KbQueueFlush(device);
         end
         [~, ~, keyCode] = KbCheck(-1); % -1 = check all keyboards
         keyName = KbName(logical(keyCode)); % returns key name as a string
@@ -383,7 +378,7 @@ for i = 1:cycles_interleaved
         flicker = false;
         
         % FRAME LOOP
-        KbQueueFlush();
+        KbQueueFlush(device);
         
         % Initiate Contrast Flipping
         while GetSecs < t_stop
@@ -484,7 +479,7 @@ for i = 1:cycles_interleaved
             
             % USER RESPONSE
             secs=GetSecs;
-            [~, firstpress]=KbQueueCheck(); %check response
+            [~, firstpress]=KbQueueCheck(device); %check response
             if firstpress(response_button) > 0
                 % Correct response to stimulus
                 if response_needed
@@ -499,7 +494,7 @@ for i = 1:cycles_interleaved
                     cycle_data.fixation_response.false_alarm = cycle_data.fixation_response.false_alarm + 1;
                     response_not_needed = false;
                 end
-                KbQueueFlush();
+                KbQueueFlush(device);
             end
             
             [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
@@ -546,7 +541,7 @@ for i = 1:cycles_interleaved
         flicker = false;
         flicker_response_block = false;
         
-        KbQueueFlush();
+        KbQueueFlush(device);
 
         % FRAME LOOP
         while GetSecs < t_stop
@@ -643,7 +638,7 @@ for i = 1:cycles_interleaved
             
             % Check for a keyboard response (on EVERY frame)
             secs=GetSecs;
-            [~, firstpress]=KbQueueCheck(); %check response
+            [~, firstpress]=KbQueueCheck(device); %check response
             if firstpress(response_button) > 0
                 
                 % Correct response to stimulus
@@ -659,7 +654,7 @@ for i = 1:cycles_interleaved
                     cycle_data.attention_response.false_alarm = cycle_data.attention_response.false_alarm + 1;
                     response_not_needed = false;
                 end
-                KbQueueFlush();
+                KbQueueFlush(device);
             end
             [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
             keyName = KbName(logical(keyCode));%returns key name as a string
@@ -692,7 +687,7 @@ for i = 1:cycles_interleaved
     response_not_needed = true; % used for false alarm count
     
     % FRAME LOOP
-    KbQueueFlush();
+    KbQueueFlush(device);
     
     
     while GetSecs < t_stop
@@ -723,7 +718,7 @@ for i = 1:cycles_interleaved
         
         % USER RESPONSE
         % Check for a keyboard response (on EVERY frame)
-        [~, firstpress]=KbQueueCheck(); %check response
+        [~, firstpress]=KbQueueCheck(device); %check response
         if firstpress(response_button) > 0
             
             % No stimulus, only false alarms recorded
@@ -731,7 +726,7 @@ for i = 1:cycles_interleaved
                 run_data.baseline_response.false_alarm = run_data.baseline_response.false_alarm + 1;
                 response_not_needed = false;
             end
-            KbQueueFlush();
+            KbQueueFlush(device);
         end
         
         [~, ~, keyCode] = KbCheck(-1); % -1 causes it to check all keyboards
