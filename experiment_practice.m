@@ -30,7 +30,7 @@ run_data.false_alarm = 0;
 %run_data.numberrepeattimes = [];
 run_data.numbers = [];
 run_data.numberstime = [];
-run_data.baseline_response.false_alarm = 0;
+%run_data.baseline_response.false_alarm = 0;
 
 % Task Variables
 head_delay = 5;     % Just numbers, no arrow or grating
