@@ -26,9 +26,9 @@ PsychDefaultSetup(2);
 deviceString = 'Dell USB Entry Keyboard';
 %deviceString = 'Lumina Keyboard';
 
-% Perform sync test to avoid flicker slowing when connected to projector. 0
-% = do NOT perform sync test. 1 = DO perform sync test.
-% ERIN - I THINK THIS IS BACKWARDS
+translation = 0.98; % Determines baseline opacity of flicker mask
+
+% Perform sync test to avoid flicker slowing when connected to projector.
 % (Added Aug 31, 2015)
 Screen('Preference','SkipSyncTests', 0)
 
@@ -40,6 +40,8 @@ black = BlackIndex(screenNumber);
 grey = white / 2;
 fixationFirst = 1;
 attentionFirst = 0;
+blockdur = 21;
+practiceblockdur = 5;
 
 % Create a file to store response data
 cd log;
@@ -151,7 +153,7 @@ while continueExperiment == true
         elseif keyInt == 31 % 2 KEY -> EXPERIMENT
             n = n+1;
             % Call the experiment function
-            [run_name, run_data] = experiment_run( n, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString);
+            [run_name, run_data] = experiment_run( n, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString,blockdur, translation);
             
             % Test function output
             eval([run_name, '= run_data;']);
@@ -164,7 +166,7 @@ while continueExperiment == true
         elseif keyInt == 32 % 3 KEY -> EXPERIMENT
             n = n+1;
             % Call the experiment function
-            [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString);
+            [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString,blockdur, translation);
             
             % Test function output
             eval([run_name, '= run_data;']);
@@ -177,7 +179,7 @@ while continueExperiment == true
         elseif keyInt == 33 % 4 KEY -> EXPERIMENT
             n = n+1;
             % Call the experiment function
-            [run_name, run_data] = experiment_practice( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString);
+            [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString, practiceblockdur);
             
             % Test function output
             eval([run_name, '= run_data;']);
