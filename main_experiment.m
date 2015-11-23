@@ -23,10 +23,10 @@ PsychDefaultSetup(2);
 
 % SELECT RESPONSE DEVICE
 %deviceString = 'Apple Internal Keyboard / Trackpad';
-deviceString = 'Dell USB Entry Keyboard';
-%deviceString = 'Lumina Keyboard';
+%deviceString = 'Dell USB Entry Keyboard';
+deviceString = 'Lumina Keyboard';
 
-translation = 0.98; % Determines baseline opacity of flicker mask
+translation = 0.95; % Determines baseline opacity of flicker mask
 
 % Perform sync test to avoid flicker slowing when connected to projector.
 % (Added Aug 31, 2015)
@@ -179,7 +179,7 @@ while continueExperiment == true
         elseif keyInt == 33 % 4 KEY -> EXPERIMENT
             n = n+1;
             % Call the experiment function
-            [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString, practiceblockdur);
+            [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString, practiceblockdur,translation);
             
             % Test function output
             eval([run_name, '= run_data;']);

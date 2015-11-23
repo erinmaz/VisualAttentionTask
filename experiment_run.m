@@ -1,4 +1,4 @@
-function [ run_name, run_data ] = experiment_run( run_number, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString)
+function [ run_name, run_data ] = experiment_run( run_number, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString,blockdur,translation)
 % Edited Aug 10 2015, MM
 % Edited Nov 12, 2015 ELM
 % This function presents the experiment (fixation and attention conditions)
@@ -34,8 +34,8 @@ run_data.numberstime = [];
 %run_data.baseline_response.false_alarm = 0;
 
 % Task Variables
-head_delay = 21;     % Just numbers, no arrow or grating
-tail_delay = 21;     % Just numbers, no arrow or grating
+head_delay = blockdur;     % Just numbers, no arrow or grating
+tail_delay = blockdur;     % Just numbers, no arrow or grating
 time_on = head_delay+tail_delay;   % Numbers, grating, and arrow
 quit_button = 20;       % 20 is the int value of 'q'
 response_button = 6;    % 6 is the int value of 'c' - right index finger (blue button)
@@ -66,7 +66,7 @@ ifi = Screen('GetFlipInterval', window); % inter frame inverval
 freq = 60; % checkerboard refresh rate in Hz
 num_freq = 2; % number frequency in Hz
 
-translation = 0.98; % Determines baseline opacity of flicker mask
+%translation = 0.98; % Determines baseline opacity of flicker mask
 amplitude = (1-translation)*.45; %flicker contrast is 45% of baseline contrast
 angle = 0;
 phase_index = 1; % controls movement of grating
