@@ -1,4 +1,4 @@
-function [ run_name, run_data ] = experiment_run( run_number, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString,blockdur,translation)
+function [ run_name, run_data ] = experiment_run( run_number, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString,blockdur,translation, practice)
 % Edited Aug 10 2015, MM
 % Edited Nov 12, 2015 ELM
 % This function presents the experiment (fixation and attention conditions)
@@ -317,12 +317,16 @@ KbTriggerWait(KbName('c'), device);
 Screen('Flip', window);
 
 % Wait for Trigger
+if (~practice)
 KbTriggerWait(KbName('T'), device);
+else WaitSecs(2);
+end
 
 % Set up queue for responses
 KbQueueCreate(device,keylist);%%make queue
 KbQueueStart(device);
-rectColor = [0.8 0 0];
+redColor = [0.8 0 0];
+blueColor = [0 0 0.8];
 listCounter = 1;
 ulistCounter = 1;
 frameCounter = 0;
@@ -460,12 +464,12 @@ for i = 1:cycles_interleaved
             
             % Draw the arrow
             if frameCounter + numOffFrames >= checkFlipTimeFrames_nums % pause between numbers
-                Screen('FillPoly', window, rectColor, pointListIn);
+                Screen('FillPoly', window, redColor, pointListIn);
                 
             else
                 % Draw the number and arrow
                 Screen('TextSize', window, numberFontSize);
-                Screen('FillPoly', window, rectColor, pointListIn);
+                Screen('FillPoly', window, redColor, pointListIn);
                 DrawFormattedText(window, num2str(val_list(listCounter)), 'center', 'center');
                
                 %run_data.numberrepeattimes = [run_data.numberrepeattimes GetSecs];
@@ -634,12 +638,12 @@ for i = 1:cycles_interleaved
             % Draw the fixation
             if frameCounter + numOffFrames >= checkFlipTimeFrames_nums % 200 ms pause between numbers
                 % Draw just the arrow
-                Screen('FillPoly', window, rectColor, pointListOut);
+                Screen('FillPoly', window, blueColor, pointListOut);
             else
                 % Draw the number and the arrow
                 Screen('TextSize', window, numberFontSize);
                 DrawFormattedText(window, num2str(unique_list(ulistCounter)), 'center', 'center');
-                Screen('FillPoly', window, rectColor, pointListOut);
+                Screen('FillPoly', window, blueColor, pointListOut);
             end
             
             % Flip to the screen

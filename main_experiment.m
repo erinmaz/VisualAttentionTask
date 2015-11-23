@@ -23,8 +23,8 @@ PsychDefaultSetup(2);
 
 % SELECT RESPONSE DEVICE
 %deviceString = 'Apple Internal Keyboard / Trackpad';
-%deviceString = 'Dell USB Entry Keyboard';
-deviceString = 'Lumina Keyboard';
+deviceString = 'Dell USB Entry Keyboard';
+% deviceString = 'Lumina Keyboard';
 
 translation = 0.95; % Determines baseline opacity of flicker mask
 
@@ -153,7 +153,8 @@ while continueExperiment == true
         elseif keyInt == 31 % 2 KEY -> EXPERIMENT
             n = n+1;
             % Call the experiment function
-            [run_name, run_data] = experiment_run( n, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString,blockdur, translation);
+            practice =0;
+            [run_name, run_data] = experiment_run( n, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString,blockdur, translation, practice);
             
             % Test function output
             eval([run_name, '= run_data;']);
@@ -166,7 +167,8 @@ while continueExperiment == true
         elseif keyInt == 32 % 3 KEY -> EXPERIMENT
             n = n+1;
             % Call the experiment function
-            [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString,blockdur, translation);
+            practice=0;
+            [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString,blockdur, translation, practice);
             
             % Test function output
             eval([run_name, '= run_data;']);
@@ -179,7 +181,8 @@ while continueExperiment == true
         elseif keyInt == 33 % 4 KEY -> EXPERIMENT
             n = n+1;
             % Call the experiment function
-            [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString, practiceblockdur,translation);
+            practice=1;
+            [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString, practiceblockdur,translation, practice);
             
             % Test function output
             eval([run_name, '= run_data;']);
