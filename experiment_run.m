@@ -1,4 +1,4 @@
-function [ run_name, run_data ] = experiment_run( run_number, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString)
+function [ run_name, run_data ] = experiment_run( run_number, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString,blockdur,translation)
 % Edited Aug 10 2015, MM
 % Edited Nov 12, 2015 ELM
 % This function presents the experiment (fixation and attention conditions)
@@ -27,15 +27,15 @@ run_data.complete = 'no';
 run_data.correct = 0;
 run_data.total_trials = 0;
 run_data.false_alarm = 0;
-%run_data.flickertimes = [];
-%run_data.numberrepeattimes = [];
+run_data.flickertimes = [];
+run_data.repeatnumbertimes = [];
 run_data.numbers = [];
 run_data.numberstime = [];
 %run_data.baseline_response.false_alarm = 0;
 
 % Task Variables
-head_delay = 21;     % Just numbers, no arrow or grating
-tail_delay = 21;     % Just numbers, no arrow or grating
+head_delay = blockdur;     % Just numbers, no arrow or grating
+tail_delay = blockdur;     % Just numbers, no arrow or grating
 time_on = head_delay+tail_delay;   % Numbers, grating, and arrow
 quit_button = 20;       % 20 is the int value of 'q'
 response_button = 6;    % 6 is the int value of 'c' - right index finger (blue button)
@@ -66,7 +66,7 @@ ifi = Screen('GetFlipInterval', window); % inter frame inverval
 freq = 60; % checkerboard refresh rate in Hz
 num_freq = 2; % number frequency in Hz
 
-translation = 0.98; % Determines baseline opacity of flicker mask
+%translation = 0.98; % Determines baseline opacity of flicker mask
 amplitude = (1-translation)*.45; %flicker contrast is 45% of baseline contrast
 angle = 0;
 phase_index = 1; % controls movement of grating
@@ -127,13 +127,25 @@ pointListOut(7,2) = pointListOut(1,2)-8;
 % RANDOM REPEATING NUMBERS
 % Create the list of numbers that will flash on the screen
 % Set the repeat intevals
-repeat = round(rand(1,1000)*4+3); % list of ints between 3 and 7 (seconds between random repeating values)
-repeatFlicker = round(rand(1,1000)*4+3); % list of ints between 3 and 7 (seconds between flickers)
+repeatblock1 = [5.5 4.5 5.5 3.5 2.5 6.5 ]; % first interval is 3.5 sec - done manually
+repeatblock2 = [4.5 6.5 2.5 3.5 5.5 3.5 5.5 ];
+
+%repeat = round(rand(1,16)*4+3); % list of ints between 3 and 7 (seconds between random repeating values)
+repeat = [repeatblock1 repeatblock2];
 repeat2Hz = repeat * 2;
 
+repeatFlicker1 = [ 4.5000    5.5000    3.5000    6.5000    5.5000    2.5000    3.5000];
+repeatFlicker2 = [ 5.5000    3.5000    2.5000    5.5000    4.5000    3.5000    6.5000];
+repeatFlicker3 = [ 5.5000    6.5000    3.5000    5.5000    2.5000    3.5000    4.5000];
+repeatFlicker4 = [ 6.5000    4.5000    5.5000    3.5000    2.5000    3.5000    5.5000];
+
+repeatFlicker = [repeatFlicker1 repeatFlicker2 repeatFlicker3 repeatFlicker4];
+%repeatFlicker = round(rand(1,1000)*4+3); % list of ints between 3 and 7 (seconds between flickers)
+
+
 % Set the first section - each section has 6 to 14 non repeating numbers followed by one repeat.
-val_list = randperm(9,6); % 6 non-repeating values between 1 and 9
-repeat_val = val_list(6);
+val_list = randperm(9,7); % 7 non-repeating values (i.e., 3.5 sec) between 1 and 9 
+repeat_val = val_list(7);
 val_list = [val_list repeat_val];
 
 % Add to the value list one non-repeating chunk at a time
@@ -165,11 +177,49 @@ for i = repeat2Hz % Numbers flicker at 2Hz so we multiply the repeat interval by
     % Add the repeating value
     repeat_val = val_list(end);
     val_list = [val_list repeat_val];
+
+   
+    
     % End when the list is long enough (50% more #'s than needed at a rate of 2/sec)
-    if length(val_list) > ((head_delay + tail_delay + time_on) * cycles_interleaved * 3)
-        break
-    end
+ %   if length(val_list) > ((head_delay + tail_delay + time_on) * cycles_interleaved * 3)
+  %      break
+ %   end
 end
+ midsection=randperm(9,9);
+    while midsection(1) == val_list(70)
+        midsection=randperm(9,9);
+    end
+    list_append = randperm(9,5);
+    while list_append(1) == midsection(end)
+        list_append = randperm(9,5);
+    end
+    list_append = [midsection list_append];
+    val_list =  [val_list(1:70) list_append val_list(71:end)];
+    
+    endsection=randperm(9,9);
+    while endsection(1) == val_list(end)
+        endsection=randperm(9,9);
+    end
+    list_append = randperm(9,9);
+    while list_append(1) == endsection(end)
+        list_append = randperm(9,9);
+    end
+    list_append = [endsection list_append];
+    val_list = [val_list list_append];
+
+% % add enough to get through the end of the blocks
+% while length(val_list) < 2*time_on*(cycles_interleaved/2)
+%     triple=true;
+%     while triple
+%         list_append = randperm(9,9);
+%         if list_append(1) == val_list(end)
+%             triple = true;
+%         else
+%             triple = false;
+%         end
+%     end
+%     val_list = [val_list list_append];
+% end
 
 % RANDOM NON-REPEATING NUMBERS
 
@@ -191,7 +241,9 @@ while length(unique_list) < ((head_delay + tail_delay + time_on) * cycles_interl
     unique_list = [unique_list list_append];
 end
 
+
 random_frames = round(repeatFlicker / ifi); % Frames on which to initiate a flicker
+
 flicker_count = 1; % index of random_frames
 
 % WAIT SCREEN
@@ -379,6 +431,7 @@ for i = 1:cycles_interleaved
         response_needed = false; % used for correct response count
         response_not_needed = true; % used for false alarm count
         flicker = false;
+        flicker_count = 1;
         
         % FRAME LOOP
         KbQueueFlush(device);
@@ -422,13 +475,16 @@ for i = 1:cycles_interleaved
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
             % Check if a flicker should start
-            if GetSecs + 1 <= t_stop % Only if there's enough time
+            if flicker_count <= 7
+          %  if flicker_count <= length(repeatFlicker)
+         %   if GetSecs + 1 <= t_stop % Only if there's enough time
                 if frameCounter_flicker == random_frames(flicker_count)
                     flicker = true;
                     flicker_count = flicker_count + 1;
                     flicker_deg = 0;
                     cycle_data.fixation.flickertimes = [cycle_data.fixation.flickertimes GetSecs];
                 end
+         %   end
             end
             
             % Determine if flicker is over
@@ -445,7 +501,7 @@ for i = 1:cycles_interleaved
                 % Also advance the flicker contrast
                 flicker_deg = flicker_deg + 12; %12 deg at 60Hz = 0.5 second for 360 deg
                 % End of texture list, reset it
-                if phase_index >= 241
+                if phase_index > 240
                     phase_index = 1;
                 end
                 angle = angle + 0.1;
@@ -453,7 +509,7 @@ for i = 1:cycles_interleaved
             end
             
             % Advance to next number in list
-            if frameCounter == checkFlipTimeFrames_nums
+            if frameCounter == checkFlipTimeFrames_nums 
                 listCounter = listCounter + 1;
                 frameCounter = 0;
                 run_data.numbers = [run_data.numbers val_list(listCounter)];
@@ -464,13 +520,15 @@ for i = 1:cycles_interleaved
                     if frameCounter == 0
                         starttime=GetSecs;
                         cycle_data.fixation.repeatnumbertimes = [cycle_data.fixation.repeatnumbertimes starttime];
-                    end
+                   % end
                     response_needed = true;
                     response_not_needed = false;
                     % Assume "miss" until response is given
                     cycle_data.fixation_response.miss = cycle_data.fixation_response.miss + 1;
                     cycle_data.fixation_response.repeat_tests = cycle_data.fixation_response.repeat_tests + 1;
+                    end
                     % Check if previous number required a response
+                    
                 elseif (listCounter > 2) && (val_list(listCounter-2) == val_list(listCounter-1))
                     response_not_needed = false; % leeway time on false alarm trigger
                     response_needed = true;
@@ -517,6 +575,8 @@ for i = 1:cycles_interleaved
         run_data.correct = run_data.correct + cycle_data.fixation_response.correct;
         run_data.total_trials = run_data.total_trials + cycle_data.fixation_response.repeat_tests;
         run_data.false_alarm = run_data.false_alarm + cycle_data.fixation_response.false_alarm;
+        run_data.flickertimes = [run_data.flickertimes cycle_data.fixation.flickertimes];
+        run_data.repeatnumbertimes = [run_data.repeatnumbertimes cycle_data.fixation.repeatnumbertimes];
         
         %-----------------------------------------------------------------------
         % ATTENTION
@@ -543,6 +603,8 @@ for i = 1:cycles_interleaved
         response_not_needed = true; % used for false alarm count
         flicker = false;
         flicker_response_block = false;
+        
+        flicker_count = 1;
         
         KbQueueFlush(device);
 
@@ -584,7 +646,9 @@ for i = 1:cycles_interleaved
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
             % Check if a flicker should start
-            if GetSecs + 1 <= t_stop % Only if there's enough time
+            if flicker_count <= 7
+          %  if flicker_count <= length(repeatFlicker) % only if there are more flickers left to do
+     %       if GetSecs + 1 <= t_stop % Only if there's enough time
                 if frameCounter_flicker == random_frames(flicker_count)
                     flicker = true;
                     flicker_response_block = true;
@@ -597,6 +661,7 @@ for i = 1:cycles_interleaved
                     % Assume miss untill correct response given
                     cycle_data.attention_response.miss = cycle_data.attention_response.miss + 1;
                 end
+       %     end
             end
             
             % Determine if flicker is over
@@ -610,7 +675,8 @@ for i = 1:cycles_interleaved
             
             % Extra time to respond to flicker
             if flicker_response_block
-                if flicker_deg == 720
+                %if flicker_deg == 720
+                if flicker_deg == 1080 %1500ms?
                     flicker_response_block = false;
                     response_needed = false;
                     response_not_needed = true;
@@ -674,7 +740,8 @@ for i = 1:cycles_interleaved
     run_data.correct = run_data.correct + cycle_data.attention_response.correct;
     run_data.total_trials = run_data.total_trials + cycle_data.attention_response.flickers;
     run_data.false_alarm = run_data.false_alarm + cycle_data.attention_response.false_alarm;
-    
+    run_data.flickertimes = [run_data.flickertimes cycle_data.attention.flickertimes];
+
     
     % DISPLAY NUMBERS (TAIL DELAY)
     %-----------------------------
