@@ -22,8 +22,8 @@ clear all;
 PsychDefaultSetup(2);
 
 % SELECT RESPONSE DEVICE
-%deviceString = 'Apple Internal Keyboard / Trackpad';
-deviceString = 'Dell USB Entry Keyboard';
+deviceString = 'Apple Internal Keyboard / Trackpad';
+%deviceString = 'Dell USB Entry Keyboard';
 % deviceString = 'Lumina Keyboard';
 
 translation = 0.95; % Determines baseline opacity of flicker mask
@@ -60,7 +60,7 @@ Screen('TextSize', window, 30);
 DrawFormattedText(window, 'Calculating. Please Wait...', 'center', 'center');
 Screen('Flip', window);
 
-checksize_fract = 0.06; %size of grating as a fraction of screen size
+checksize_fract = 0.06; %size of grating as a fraction of screen size (determines check size)
 trapezoid_fract = 0.07; %width of trapezoid (to smooth grating) as a fraction of screen size
 inner_circle_fract = 0.22;
 imSize = screenXpixels; %size of window
@@ -92,7 +92,7 @@ theta1 = 45; % Right slanted sin grating
 theta2 = 135; % Left slanted sin grating
 
 %check if lambda corresponds to visual angle in Moradi paper
-lambda = screenXpixels.*checksize_fract; % Wavelength (in px) determines check size
+lambda = screenXpixels.*checksize_fract; % Wavelength determines check size
 sin_freq = imSize/lambda;
 
 

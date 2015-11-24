@@ -259,10 +259,16 @@ Screen('TextSize', window, 30);
 DrawFormattedText(window, 'Calculating. Please Wait...', 'center', 'center');
 Screen('Flip', window);
 
+numPhases=240;
 % PERIPHERAL GRATING
-textureList1 = zeros(1,240);
-for i = 1 : 240 % pre-draw 240 of these (one full phase) to save time during frames
-    phase = i*1.5; % VARIES WITH TIME
+%textureList1 = zeros(1,240);
+textureList1 = zeros(1,numPhases);
+%textureList1={};
+for i = 1:numPhases
+%for i = 1 : 240 % pre-draw 240 of these (one full phase at 60Hz refresh rate and 0.25Hz drift) to save time during frames
+%this is actually two phases
+    phase = i*0.75; % VARIES WITH TIME
+    %phase=i;
     phaseRad = (phase * (pi/180));
     thetaRad1 = (theta1 / 360) * 2*pi;
     thetaRad2 = (theta2 / 360) * 2*pi;
@@ -272,10 +278,12 @@ for i = 1 : 240 % pre-draw 240 of these (one full phase) to save time during fra
     finalgrating=(finalgrating+1)/2;
     gratingTexture1 = Screen('MakeTexture', window, finalgrating);
     textureList1(i) = gratingTexture1;
+    %textureList1{i} = finalgrating;
 end
 
 % Setup flicker mask
 newRect = [0, 0, imSize*1.25, imSize*1.25];
+%newRect = [0, 0, imSize, imSize];
 flickerRect = CenterRectOnPointd(newRect, xCenter, yCenter);
 
 %-----------------------------------------------------------------------
@@ -307,7 +315,7 @@ keylist(keys)=1;%%set keys you interested in to 1
 
 % Draw the Instructions
 Screen('TextSize', window, 30);
-DrawFormattedText(window, 'Keep your eyes on the flashing numbers. \n\n When arrow points inward, \n press for repeating numbers. \n\n When arrow points outward, \n press for contrast flickers. \n\n Press the button when you are ready to start.', 'center', 'center');
+DrawFormattedText(window, 'Keep your eyes on the flashing numbers. \n\n When red arrow points inward, \n press for repeating numbers. \n\n When blue arrow points outward, \n press for contrast flickers. \n\n Press the button when you are ready to start.', 'center', 'center');
 Screen('Flip', window);
 
 % Wait for participant to push button
@@ -471,8 +479,6 @@ for i = 1:cycles_interleaved
                 Screen('TextSize', window, numberFontSize);
                 Screen('FillPoly', window, redColor, pointListIn);
                 DrawFormattedText(window, num2str(val_list(listCounter)), 'center', 'center');
-               
-                %run_data.numberrepeattimes = [run_data.numberrepeattimes GetSecs];
             end
             
             % Flip to the screen
@@ -480,15 +486,12 @@ for i = 1:cycles_interleaved
             
             % Check if a flicker should start
             if flicker_count <= 7
-          %  if flicker_count <= length(repeatFlicker)
-         %   if GetSecs + 1 <= t_stop % Only if there's enough time
                 if frameCounter_flicker == random_frames(flicker_count)
                     flicker = true;
                     flicker_count = flicker_count + 1;
                     flicker_deg = 0;
                     cycle_data.fixation.flickertimes = [cycle_data.fixation.flickertimes GetSecs];
                 end
-         %   end
             end
             
             % Determine if flicker is over
@@ -692,7 +695,8 @@ for i = 1:cycles_interleaved
                 phase_index = phase_index + 1;
                 flicker_deg = flicker_deg + 12; %12 deg at 60Hz = 0.5 second for 360 deg
                 % End of list, index first texture in list
-                if phase_index >= 241
+                %              if phase_index >= 241
+                if phase_index > numPhases
                     phase_index = 1;
                 end
                 angle = angle + 0.1;
