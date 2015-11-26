@@ -20,10 +20,10 @@ run_data = [];
 run_data.complete = 'no';
 
 % Task Variables
-time_head = 35;  % 20
-time_on = 35;   % 25
-time_off = 35;  % 25
-cycles = 4;     % 7
+time_head = 36;  % 35
+time_on = 36;   % 35
+time_off = 36;  % 35
+cycles = 4;     % 4
 
 % Time to wait in frames for a flip
 waitframes = 1;

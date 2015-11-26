@@ -66,7 +66,6 @@ ifi = Screen('GetFlipInterval', window); % inter frame inverval
 freq = 60; % checkerboard refresh rate in Hz
 num_freq = 2; % number frequency in Hz
 
-%translation = 0.98; % Determines baseline opacity of flicker mask
 amplitude = (1-translation)*.45; %flicker contrast is 45% of baseline contrast
 angle = 0;
 phase_index = 1; % controls movement of grating
@@ -127,19 +126,20 @@ pointListOut(7,2) = pointListOut(1,2)-8;
 % RANDOM REPEATING NUMBERS
 % Create the list of numbers that will flash on the screen
 % Set the repeat intevals
-repeatblock1 = [5.5 4.5 5.5 3.5 2.5 6.5 ]; % first interval is 3.5 sec - done manually
-repeatblock2 = [4.5 6.5 2.5 3.5 5.5 3.5 5.5 ];
+repeatblock1 = [5.5 4.5 5.5 3.5 2.5 6.5 4.5 ]; % first interval is 3.5 sec - done manually
+repeatblock2 = [4.5 6.5 2.5 3.5 5.5 3.5 4.5 5.5 ];
 
 %repeat = round(rand(1,16)*4+3); % list of ints between 3 and 7 (seconds between random repeating values)
 repeat = [repeatblock1 repeatblock2];
 repeat2Hz = repeat * 2;
 
-repeatFlicker1 = [ 4.5000    5.5000    3.5000    6.5000    5.5000    2.5000    3.5000];
-repeatFlicker2 = [ 5.5000    3.5000    2.5000    5.5000    4.5000    3.5000    6.5000];
-repeatFlicker3 = [ 5.5000    6.5000    3.5000    5.5000    2.5000    3.5000    4.5000];
-repeatFlicker4 = [ 6.5000    4.5000    5.5000    3.5000    2.5000    3.5000    5.5000];
+repeatFlicker1 = [ 4.5000    5.5000    3.5000    6.5000    4.5 5.5000    2.5000    3.5000];
+repeatFlicker2 = [ 5.5000    3.5000    2.5000    4.5 5.5000    4.5000    3.5000    6.5000];
+repeatFlicker3 = [ 5.5000    6.5000    4.5 3.5000    5.5000    2.5000    3.5000    4.5000];
+repeatFlicker4 = [ 6.5000    4.5 4.5000    5.5000    3.5000    2.5000    3.5000    5.5000];
 
 repeatFlicker = [repeatFlicker1 repeatFlicker2 repeatFlicker3 repeatFlicker4];
+num_flickers_per_block=8;
 %repeatFlicker = round(rand(1,1000)*4+3); % list of ints between 3 and 7 (seconds between flickers)
 
 
@@ -338,6 +338,7 @@ blueColor = [0 0 0.8];
 listCounter = 1;
 ulistCounter = 1;
 frameCounter = 0;
+flicker_count = 1;
 
 % Sync us to the vertical retrace
 vbl = Screen('Flip', window);
@@ -443,7 +444,7 @@ for i = 1:cycles_interleaved
         response_needed = false; % used for correct response count
         response_not_needed = true; % used for false alarm count
         flicker = false;
-        flicker_count = 1;
+        %flicker_count = 1;
         
         % FRAME LOOP
         KbQueueFlush(device);
@@ -485,7 +486,7 @@ for i = 1:cycles_interleaved
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
             % Check if a flicker should start
-            if flicker_count <= 7
+            if flicker_count <= num_flickers_per_block
                 if frameCounter_flicker == random_frames(flicker_count)
                     flicker = true;
                     flicker_count = flicker_count + 1;
@@ -653,7 +654,7 @@ for i = 1:cycles_interleaved
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
             % Check if a flicker should start
-            if flicker_count <= 7
+            if flicker_count <= num_flickers_per_block
           %  if flicker_count <= length(repeatFlicker) % only if there are more flickers left to do
      %       if GetSecs + 1 <= t_stop % Only if there's enough time
                 if frameCounter_flicker == random_frames(flicker_count)
