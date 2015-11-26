@@ -134,13 +134,20 @@ repeatblock2 = [4.5 6.5 2.5 3.5 5.5 3.5 5.5 ];
 repeat = [repeatblock1 repeatblock2];
 repeat2Hz = repeat * 2;
 
-repeatFlicker1 = [ 4.5000    5.5000    3.5000    6.5000    5.5000    2.5000    3.5000];
-repeatFlicker2 = [ 5.5000    3.5000    2.5000    5.5000    4.5000    3.5000    6.5000];
-repeatFlicker3 = [ 5.5000    6.5000    3.5000    5.5000    2.5000    3.5000    4.5000];
-repeatFlicker4 = [ 6.5000    4.5000    5.5000    3.5000    2.5000    3.5000    5.5000];
+% repeatFlicker1 = [ 4.5000    5.5000    3.5000    6.5000    5.5000    2.5000    3.5000];
+% repeatFlicker2 = [ 5.5000    3.5000    2.5000    5.5000    4.5000    3.5000    6.5000];
+% repeatFlicker3 = [ 5.5000    6.5000    3.5000    5.5000    2.5000    3.5000    4.5000];
+% repeatFlicker4 = [ 6.5000    4.5000    5.5000    3.5000    2.5000    3.5000    5.5000];
 
-repeatFlicker = [repeatFlicker1 repeatFlicker2 repeatFlicker3 repeatFlicker4];
-%repeatFlicker = round(rand(1,1000)*4+3); % list of ints between 3 and 7 (seconds between flickers)
+repeatFlicker=zeros(4,7);
+repeatFlicker(1,:) = [ 4.5000    5.5000    3.5000    6.5000    5.5000    2.5000    3.5000];
+repeatFlicker(2,:) = [ 5.5000    3.5000    2.5000    5.5000    4.5000    3.5000    6.5000];
+repeatFlicker(3,:) = [ 5.5000    6.5000    3.5000    5.5000    2.5000    3.5000    4.5000];
+repeatFlicker(4,:) = [ 6.5000    4.5000    5.5000    3.5000    2.5000    3.5000    5.5000];
+
+random_frames = round(repeatFlicker / ifi);
+
+%flicker_count = 1; % index of random_frames
 
 
 % Set the first section - each section has 6 to 14 non repeating numbers followed by one repeat.
@@ -242,9 +249,7 @@ while length(unique_list) < ((head_delay + tail_delay + time_on) * cycles_interl
 end
 
 
-random_frames = round(repeatFlicker / ifi); % Frames on which to initiate a flicker
 
-flicker_count = 1; % index of random_frames
 
 % WAIT SCREEN
 
@@ -486,21 +491,25 @@ for i = 1:cycles_interleaved
             
             % Check if a flicker should start
             if flicker_count <= 7
-                if frameCounter_flicker == random_frames(flicker_count)
+            %if mod(flicker_count,7) == 0; %no time for a flicker in this block, but
+             %   flicker_count = flicker_count + 1;
+            %else
+                if frameCounter_flicker == random_frames(i,flicker_count)
                     flicker = true;
                     flicker_count = flicker_count + 1;
                     flicker_deg = 0;
                     cycle_data.fixation.flickertimes = [cycle_data.fixation.flickertimes GetSecs];
+                    
                 end
             end
-            
-            % Determine if flicker is over
-            if flicker
-                if flicker_deg == 360
-                    flicker = false;
-                    frameCounter_flicker = 0;
+                
+                % Determine if flicker is over
+                if flicker
+                    if flicker_deg == 360
+                        flicker = false;
+                        frameCounter_flicker = 0;
+                    end
                 end
-            end
             
             % Keep the phase of the grating moving 60HZ
             if frameCounter_stim == checkFlipTimeFrames_stim
@@ -656,7 +665,7 @@ for i = 1:cycles_interleaved
             if flicker_count <= 7
           %  if flicker_count <= length(repeatFlicker) % only if there are more flickers left to do
      %       if GetSecs + 1 <= t_stop % Only if there's enough time
-                if frameCounter_flicker == random_frames(flicker_count)
+                if frameCounter_flicker == random_frames(i,flicker_count)
                     flicker = true;
                     flicker_response_block = true;
                     flicker_count = flicker_count + 1;

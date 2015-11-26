@@ -60,9 +60,9 @@ Screen('TextSize', window, 30);
 DrawFormattedText(window, 'Calculating. Please Wait...', 'center', 'center');
 Screen('Flip', window);
 
-checksize_fract = 0.06; %size of grating as a fraction of screen size (determines check size)
+checksize_fract = 0.08; %size of grating as a fraction of screen size (determines check size)
 trapezoid_fract = 0.07; %width of trapezoid (to smooth grating) as a fraction of screen size
-inner_circle_fract = 0.22;
+inner_circle_fract = 0.28;
 imSize = screenXpixels; %size of window
 dim = imSize/2;
 [x_ap, y_ap] = meshgrid(-dim:dim-1, -dim:dim-1);
