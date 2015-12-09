@@ -127,8 +127,12 @@ pointListOut(7,2) = pointListOut(1,2)-8;
 % RANDOM REPEATING NUMBERS
 % Create the list of numbers that will flash on the screen
 % Set the repeat intevals
-repeatblock1 = [5.5 4.5 5.5 3.5 2.5 6.5 ]; % first interval is 3.5 sec - done manually
-repeatblock2 = [4.5 6.5 2.5 3.5 5.5 3.5 5.5 ];
+%repeatblock1 = [5.5 4.5 5.5 3.5 2.5 6.5 ]; % first interval is 3.5 sec - done manually
+%repeatblock2 = [4.5 6.5 2.5 3.5 5.5 3.5 5.5 ];
+
+repeatblock1 = [5.5 5.5 3.5 2.5 6.5 ]; % first interval is 3.5 sec - done manually
+repeatblock2 = [6.5 2.5 3.5 5.5 3.5 5.5 ];
+
 
 %repeat = round(rand(1,16)*4+3); % list of ints between 3 and 7 (seconds between random repeating values)
 repeat = [repeatblock1 repeatblock2];
@@ -139,11 +143,11 @@ repeat2Hz = repeat * 2;
 % repeatFlicker3 = [ 5.5000    6.5000    3.5000    5.5000    2.5000    3.5000    4.5000];
 % repeatFlicker4 = [ 6.5000    4.5000    5.5000    3.5000    2.5000    3.5000    5.5000];
 
-repeatFlicker=zeros(4,7);
-repeatFlicker(1,:) = [ 4.5000    5.5000    3.5000    6.5000    5.5000    2.5000    3.5000];
-repeatFlicker(2,:) = [ 5.5000    3.5000    2.5000    5.5000    4.5000    3.5000    6.5000];
-repeatFlicker(3,:) = [ 5.5000    6.5000    3.5000    5.5000    2.5000    3.5000    4.5000];
-repeatFlicker(4,:) = [ 6.5000    4.5000    5.5000    3.5000    2.5000    3.5000    5.5000];
+repeatFlicker=zeros(4,6);
+repeatFlicker(1,:) = [   5.5000    3.5000    6.5000    5.5000    2.5000    3.5000];
+repeatFlicker(2,:) = [ 5.5000    3.5000    2.5000    5.5000      3.5000    6.5000];
+repeatFlicker(3,:) = [ 5.5000    6.5000    3.5000    5.5000    2.5000    3.5000   ];
+repeatFlicker(4,:) = [ 6.5000     5.5000    3.5000    2.5000    3.5000    5.5000];
 
 random_frames = round(repeatFlicker / ifi);
 
@@ -490,7 +494,7 @@ for i = 1:cycles_interleaved
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
             % Check if a flicker should start
-            if flicker_count <= 7
+            if flicker_count <= 6
             %if mod(flicker_count,7) == 0; %no time for a flicker in this block, but
              %   flicker_count = flicker_count + 1;
             %else
@@ -662,7 +666,7 @@ for i = 1:cycles_interleaved
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
             % Check if a flicker should start
-            if flicker_count <= 7
+            if flicker_count <= 6
           %  if flicker_count <= length(repeatFlicker) % only if there are more flickers left to do
      %       if GetSecs + 1 <= t_stop % Only if there's enough time
                 if frameCounter_flicker == random_frames(i,flicker_count)

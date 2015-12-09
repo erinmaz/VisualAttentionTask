@@ -40,8 +40,8 @@ black = BlackIndex(screenNumber);
 grey = white / 2;
 fixationFirst = 1;
 attentionFirst = 0;
-blockdur = 21;
-practiceblockdur = 5;
+blockdur = 18; % 36 s blocks
+practiceblockdur = 5; %10 s blocks
 
 % Create a file to store response data
 cd log;
@@ -60,8 +60,8 @@ Screen('TextSize', window, 30);
 DrawFormattedText(window, 'Calculating. Please Wait...', 'center', 'center');
 Screen('Flip', window);
 
-checksize_fract = 0.08; %size of grating as a fraction of screen size (determines check size)
-trapezoid_fract = 0.07; %width of trapezoid (to smooth grating) as a fraction of screen size
+checksize_fract = 0.07; %size of grating as a fraction of screen size (determines check size)
+trapezoid_fract = 0.093; %width of trapezoid (to smooth grating) as a fraction of screen size
 inner_circle_fract = 0.28;
 imSize = screenXpixels; %size of window
 dim = imSize/2;
