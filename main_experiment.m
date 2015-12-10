@@ -22,9 +22,9 @@ clear all;
 PsychDefaultSetup(2);
 
 % SELECT RESPONSE DEVICE
-deviceString = 'Apple Internal Keyboard / Trackpad';
+%deviceString = 'Apple Internal Keyboard / Trackpad';
 %deviceString = 'Dell USB Entry Keyboard';
-%deviceString = 'Lumina Keyboard';%gets reset if practice task is selected
+deviceString = 'Lumina Keyboard';
 
 translation = 0.95; % Determines baseline opacity of flicker mask
 
@@ -40,8 +40,8 @@ black = BlackIndex(screenNumber);
 grey = white / 2;
 fixationFirst = 1;
 attentionFirst = 0;
-blockdur = 21.6;
-practiceblockdur = 5;
+blockdur = 18; % 36 s blocks
+practiceblockdur = 6; %10 s blocks
 
 % Create a file to store response data
 cd log;
@@ -60,8 +60,8 @@ Screen('TextSize', window, 30);
 DrawFormattedText(window, 'Calculating. Please Wait...', 'center', 'center');
 Screen('Flip', window);
 
-checksize_fract = 0.08; %size of grating as a fraction of screen size (determines check size)
-trapezoid_fract = 0.07; %width of trapezoid (to smooth grating) as a fraction of screen size
+checksize_fract = 0.07; %size of grating as a fraction of screen size (determines check size)
+trapezoid_fract = 0.093; %width of trapezoid (to smooth grating) as a fraction of screen size
 inner_circle_fract = 0.28;
 imSize = screenXpixels; %size of window
 dim = imSize/2;
@@ -109,6 +109,7 @@ while continueExperiment == true
     % Display the main menu
     Screen('TextSize', window, 36);
     DrawFormattedText(window, '1 - Localizer \n\n2 - Task 1 \n\n3 - Task 2\n\n4 - Practice task','center', 'center', black);
+    %fpintf('\nmain menu'); % This line isn't working, I dont know how to update
     %command window
     Screen('Flip', window);
     
@@ -139,7 +140,6 @@ while continueExperiment == true
         if keyInt == 30 % 1 KEY -> LOCALIZER
             n = n+1;
             % Call the localizer function
-       %     deviceString = 'Lumina Keyboard';
             [run_name, run_data] = localizer_run( n, window, fixRect, black, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth,deviceString);
             
             % Test function output
@@ -154,7 +154,6 @@ while continueExperiment == true
             n = n+1;
             % Call the experiment function
             practice =0;
-        %    deviceString = 'Lumina Keyboard';
             [run_name, run_data] = experiment_run( n, window, grey, fixationFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString,blockdur, translation, practice);
             
             % Test function output
@@ -169,7 +168,6 @@ while continueExperiment == true
             n = n+1;
             % Call the experiment function
             practice=0;
-         %   deviceString = 'Lumina Keyboard';
             [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString,blockdur, translation, practice);
             
             % Test function output
@@ -180,11 +178,11 @@ while continueExperiment == true
             
             respToBeMade = false;
             
-        elseif keyInt == 33 % 4 KEY -> practice
+        elseif keyInt == 33 % 4 KEY -> PRACTICE
             n = n+1;
             % Call the experiment function
             practice=1;
-            deviceString = 'Dell USB Entry Keyboard';
+            deviceString = 'Apple Internal Keyboard / Trackpad';
             [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString, practiceblockdur,translation, practice);
             
             % Test function output
@@ -201,7 +199,6 @@ while continueExperiment == true
         end
     end
 end
-
 
 % Clear the screen.
 ShowCursor;
