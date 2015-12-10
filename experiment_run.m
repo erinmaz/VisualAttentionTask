@@ -51,12 +51,21 @@ numberFontSize = 36;
 %     condition = {'attention' 'fixation'};
 % end
 
-cycles_interleaved = 4; % number of task blocks (equally divided between fixation and attention)
+
+num_trials_per_block = 6; % number of responses required per block. Needs to work with hardcoded intervals between flickers & repeating numbers below.
 % set condition order - must have cell arrays with length = cycles_interleaved
-if (fixationFirst)
-    condition = {'fixation' 'attention' 'fixation' 'attention'};
+if ~practice
+    cycles_interleaved = 6; % number of task blocks (equally divided between fixation and attention)
+    baseblock = [2.5 3.5 4.5 4.5 5.5 6.5] ;%set of intervals between responses (either repeating number or flicker)
+    if (fixationFirst)
+        condition = {'fixation' 'attention' 'fixation' 'attention' 'fixation' 'attention'};
+    else
+        condition = {'attention' 'fixation' 'attention' 'fixation' 'attention' 'fixation'};
+    end
 else
-    condition = {'attention' 'fixation' 'attention' 'fixation'};
+    cycles_interleaved = 4;
+    baseblock = [2.5 2.5 2.5 3.5 3.5 3.5] ;%set of intervals between responses (either repeating number or flicker)
+    condition = {'fixation' 'attention' 'fixation' 'attention'};
 end
 
 waitframes = 1; % time to wait in frames for a flip
@@ -127,110 +136,97 @@ pointListOut(7,2) = pointListOut(1,2)-8;
 % RANDOM REPEATING NUMBERS
 % Create the list of numbers that will flash on the screen
 % Set the repeat intevals
-%repeatblock1 = [5.5 4.5 5.5 3.5 2.5 6.5 ]; % first interval is 3.5 sec - done manually
-%repeatblock2 = [4.5 6.5 2.5 3.5 5.5 3.5 5.5 ];
+xi = randperm(length(baseblock));
+repeatblock1 = baseblock(xi); 
+xi = randperm(length(baseblock));
+repeatblock2 = baseblock(xi);
+xi = randperm(length(baseblock));
+repeatblock3 =  baseblock(xi);
 
-repeatblock1 = [5.5 5.5 3.5 2.5 6.5 ]; % first interval is 3.5 sec - done manually
-repeatblock2 = [6.5 2.5 3.5 5.5 3.5 5.5 ];
-
-
-%repeat = round(rand(1,16)*4+3); % list of ints between 3 and 7 (seconds between random repeating values)
-repeat = [repeatblock1 repeatblock2];
+repeat = [repeatblock1 repeatblock2 repeatblock3];
 repeat2Hz = repeat * 2;
 
-% repeatFlicker1 = [ 4.5000    5.5000    3.5000    6.5000    5.5000    2.5000    3.5000];
-% repeatFlicker2 = [ 5.5000    3.5000    2.5000    5.5000    4.5000    3.5000    6.5000];
-% repeatFlicker3 = [ 5.5000    6.5000    3.5000    5.5000    2.5000    3.5000    4.5000];
-% repeatFlicker4 = [ 6.5000    4.5000    5.5000    3.5000    2.5000    3.5000    5.5000];
 
-repeatFlicker=zeros(4,6);
-repeatFlicker(1,:) = [   5.5000    3.5000    6.5000    5.5000    2.5000    3.5000];
-repeatFlicker(2,:) = [ 5.5000    3.5000    2.5000    5.5000      3.5000    6.5000];
-repeatFlicker(3,:) = [ 5.5000    6.5000    3.5000    5.5000    2.5000    3.5000   ];
-repeatFlicker(4,:) = [ 6.5000     5.5000    3.5000    2.5000    3.5000    5.5000];
+repeatFlicker=zeros(cycles_interleaved,num_trials_per_block);
+xi = randperm(length(baseblock));
+repeatFlicker(1,:) = baseblock(xi);
+xi = randperm(length(baseblock));
+repeatFlicker(2,:) = baseblock(xi);
+xi = randperm(length(baseblock));
+repeatFlicker(3,:) = baseblock(xi);
+xi = randperm(length(baseblock));
+repeatFlicker(4,:) = baseblock(xi);
+xi = randperm(length(baseblock));
+repeatFlicker(5,:) = baseblock(xi);
+xi = randperm(length(baseblock));
+repeatFlicker(6,:) = baseblock(xi);
 
 random_frames = round(repeatFlicker / ifi);
 
 %flicker_count = 1; % index of random_frames
-
-
-% Set the first section - each section has 6 to 14 non repeating numbers followed by one repeat.
-val_list = randperm(9,7); % 7 non-repeating values (i.e., 3.5 sec) between 1 and 9 
-repeat_val = val_list(7);
-val_list = [val_list repeat_val];
-
+first=true;
 % Add to the value list one non-repeating chunk at a time
+countto6 = 0;
 for i = repeat2Hz % Numbers flicker at 2Hz so we multiply the repeat interval by 2
-    triple = true;
-    % Add a smaller chunk with no repeats if i > 9
-    if i > 9
-        while triple
+    countto6 = countto6+1;
+    if first %get the val_list started
+        list_append=[];
+        if i > 9
             list_append = randperm(9,9);
-            if list_append(1) == val_list(end)
-                triple = true;
-            else
-                triple = false;
+            smallchunk=i-9;
+            list_append2 = randperm(9,smallchunk);
+            while list_append2(1) == list_append(end)
+                list_append2 = randperm(9,smallchunk);
             end
+            val_list = [list_append list_append2];
+        else
+            val_list = randperm(9,i);
         end
-        val_list = [val_list list_append];
-        smallchunk = i - 9;
+        repeat_val = val_list(end);
+        val_list = [val_list repeat_val];
+        first=false;
     else
-        smallchunk = i;
-    end
-    % Add the remaining chunk or small chunk
-    list_append = randperm(9,smallchunk);
-    while list_append(1) == val_list(end)
+        triple = true;
+        % Add a smaller chunk with no repeats if i > 9
+        if i > 9
+            while triple
+                list_append = randperm(9,9);
+                if list_append(1) == val_list(end)
+                    triple = true;
+                else
+                    triple = false;
+                end
+            end
+            val_list = [val_list list_append];
+            smallchunk = i - 9;
+        else
+            smallchunk = i;
+        end
+        % Add the remaining chunk or small chunk
         list_append = randperm(9,smallchunk);
+        while list_append(1) == val_list(end)
+            list_append = randperm(9,smallchunk);
+        end
+        
+        % Add the new section
+        val_list = [val_list list_append];
+        % Add the repeating value
+        repeat_val = val_list(end);
+        val_list = [val_list repeat_val];
+        if countto6 == 6
+            list_append=randperm(9,9);
+            while list_append(1)==repeat_val
+                list_append=randperm(9,9);
+            end
+            list_append2=randperm(9,5);
+            while list_append(end)==list_append2(1)
+                list_append2=randperm(9,5);
+            end
+            val_list = [val_list list_append list_append2];
+            countto6 = 0;
+        end
     end
-    
-    % Add the new section
-    val_list = [val_list list_append];
-    % Add the repeating value
-    repeat_val = val_list(end);
-    val_list = [val_list repeat_val];
-
-   
-    
-    % End when the list is long enough (50% more #'s than needed at a rate of 2/sec)
- %   if length(val_list) > ((head_delay + tail_delay + time_on) * cycles_interleaved * 3)
-  %      break
- %   end
 end
- midsection=randperm(9,9);
-    while midsection(1) == val_list(70)
-        midsection=randperm(9,9);
-    end
-    list_append = randperm(9,5);
-    while list_append(1) == midsection(end)
-        list_append = randperm(9,5);
-    end
-    list_append = [midsection list_append];
-    val_list =  [val_list(1:70) list_append val_list(71:end)];
-    
-    endsection=randperm(9,9);
-    while endsection(1) == val_list(end)
-        endsection=randperm(9,9);
-    end
-    list_append = randperm(9,9);
-    while list_append(1) == endsection(end)
-        list_append = randperm(9,9);
-    end
-    list_append = [endsection list_append];
-    val_list = [val_list list_append];
-
-% % add enough to get through the end of the blocks
-% while length(val_list) < 2*time_on*(cycles_interleaved/2)
-%     triple=true;
-%     while triple
-%         list_append = randperm(9,9);
-%         if list_append(1) == val_list(end)
-%             triple = true;
-%         else
-%             triple = false;
-%         end
-%     end
-%     val_list = [val_list list_append];
-% end
 
 % RANDOM NON-REPEATING NUMBERS
 
@@ -253,8 +249,6 @@ while length(unique_list) < ((head_delay + tail_delay + time_on) * cycles_interl
 end
 
 
-
-
 % WAIT SCREEN
 
 % The next step takes a long time, draw a "PLEASE WAIT" screen
@@ -274,8 +268,8 @@ numPhases=240;
 textureList1 = zeros(1,numPhases);
 %textureList1={};
 for i = 1:numPhases
-%for i = 1 : 240 % pre-draw 240 of these (one full phase at 60Hz refresh rate and 0.25Hz drift) to save time during frames
-%this is actually two phases
+    %for i = 1 : 240 % pre-draw 240 of these (one full phase at 60Hz refresh rate and 0.25Hz drift) to save time during frames
+    %this is actually two phases
     phase = i*0.75; % VARIES WITH TIME
     %phase=i;
     phaseRad = (phase * (pi/180));
@@ -335,7 +329,7 @@ Screen('Flip', window);
 
 % Wait for Trigger
 if (~practice)
-KbTriggerWait(KbName('T'), device);
+    KbTriggerWait(KbName('T'), device);
 else WaitSecs(2);
 end
 
@@ -373,7 +367,7 @@ for i = 1:cycles_interleaved
     cycle_data.attention.flickertimes = [];
     
     cycle_data.baseline_response.false_alarm = 0;
-
+    
     
     % DISPLAY NUMBERS (HEAD DELAY)
     %-----------------------------
@@ -383,7 +377,7 @@ for i = 1:cycles_interleaved
     
     % Sync us to the vertical retrace
     %vbl = Screen('Flip', window);
-
+    
     % FRAME LOOP
     KbQueueFlush(device);
     while GetSecs < t_stop
@@ -433,7 +427,7 @@ for i = 1:cycles_interleaved
         end
         
     end
- %   run_data.false_alarm = run_data.false_alarm + cycle_data.baseline_response.false_alarm;
+    %   run_data.false_alarm = run_data.false_alarm + cycle_data.baseline_response.false_alarm;
     
     if strcmp(condition(i),'fixation')
         
@@ -494,10 +488,10 @@ for i = 1:cycles_interleaved
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
             % Check if a flicker should start
-            if flicker_count <= 6
-            %if mod(flicker_count,7) == 0; %no time for a flicker in this block, but
-             %   flicker_count = flicker_count + 1;
-            %else
+            if flicker_count <= num_trials_per_block
+                %if mod(flicker_count,7) == 0; %no time for a flicker in this block, but
+                %   flicker_count = flicker_count + 1;
+                %else
                 if frameCounter_flicker == random_frames(i,flicker_count)
                     flicker = true;
                     flicker_count = flicker_count + 1;
@@ -506,14 +500,14 @@ for i = 1:cycles_interleaved
                     
                 end
             end
-                
-                % Determine if flicker is over
-                if flicker
-                    if flicker_deg == 360
-                        flicker = false;
-                        frameCounter_flicker = 0;
-                    end
+            
+            % Determine if flicker is over
+            if flicker
+                if flicker_deg == 360
+                    flicker = false;
+                    frameCounter_flicker = 0;
                 end
+            end
             
             % Keep the phase of the grating moving 60HZ
             if frameCounter_stim == checkFlipTimeFrames_stim
@@ -529,7 +523,7 @@ for i = 1:cycles_interleaved
             end
             
             % Advance to next number in list
-            if frameCounter == checkFlipTimeFrames_nums 
+            if frameCounter == checkFlipTimeFrames_nums
                 listCounter = listCounter + 1;
                 frameCounter = 0;
                 run_data.numbers = [run_data.numbers val_list(listCounter)];
@@ -540,12 +534,12 @@ for i = 1:cycles_interleaved
                     if frameCounter == 0
                         starttime=GetSecs;
                         cycle_data.fixation.repeatnumbertimes = [cycle_data.fixation.repeatnumbertimes starttime];
-                   % end
-                    response_needed = true;
-                    response_not_needed = false;
-                    % Assume "miss" until response is given
-                    cycle_data.fixation_response.miss = cycle_data.fixation_response.miss + 1;
-                    cycle_data.fixation_response.repeat_tests = cycle_data.fixation_response.repeat_tests + 1;
+                        % end
+                        response_needed = true;
+                        response_not_needed = false;
+                        % Assume "miss" until response is given
+                        cycle_data.fixation_response.miss = cycle_data.fixation_response.miss + 1;
+                        cycle_data.fixation_response.repeat_tests = cycle_data.fixation_response.repeat_tests + 1;
                     end
                     % Check if previous number required a response
                     
@@ -588,7 +582,7 @@ for i = 1:cycles_interleaved
                 return;
             end
             
-
+            
         end
         
         eval([cycle_name, '= cycle_data;']);
@@ -627,10 +621,10 @@ for i = 1:cycles_interleaved
         flicker_count = 1;
         
         KbQueueFlush(device);
-
+        
         % FRAME LOOP
         while GetSecs < t_stop
-
+            
             % Increment Counter
             frameCounter_stim = frameCounter_stim + 1;
             frameCounter = frameCounter + 1;
@@ -666,9 +660,9 @@ for i = 1:cycles_interleaved
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
             % Check if a flicker should start
-            if flicker_count <= 6
-          %  if flicker_count <= length(repeatFlicker) % only if there are more flickers left to do
-     %       if GetSecs + 1 <= t_stop % Only if there's enough time
+            if flicker_count <= num_trials_per_block
+                %  if flicker_count <= length(repeatFlicker) % only if there are more flickers left to do
+                %       if GetSecs + 1 <= t_stop % Only if there's enough time
                 if frameCounter_flicker == random_frames(i,flicker_count)
                     flicker = true;
                     flicker_response_block = true;
@@ -681,7 +675,7 @@ for i = 1:cycles_interleaved
                     % Assume miss untill correct response given
                     cycle_data.attention_response.miss = cycle_data.attention_response.miss + 1;
                 end
-       %     end
+                %     end
             end
             
             % Determine if flicker is over
@@ -762,7 +756,7 @@ for i = 1:cycles_interleaved
     run_data.total_trials = run_data.total_trials + cycle_data.attention_response.flickers;
     run_data.false_alarm = run_data.false_alarm + cycle_data.attention_response.false_alarm;
     run_data.flickertimes = [run_data.flickertimes cycle_data.attention.flickertimes];
-
+    
     
     % DISPLAY NUMBERS (TAIL DELAY)
     %-----------------------------
@@ -782,7 +776,7 @@ for i = 1:cycles_interleaved
     
     
     while GetSecs < t_stop
-
+        
         % Increment Counter
         frameCounter = frameCounter + 1;
         

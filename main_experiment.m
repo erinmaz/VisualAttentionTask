@@ -22,9 +22,9 @@ clear all;
 PsychDefaultSetup(2);
 
 % SELECT RESPONSE DEVICE
-deviceString = 'Apple Internal Keyboard / Trackpad';
+%deviceString = 'Apple Internal Keyboard / Trackpad';
 %deviceString = 'Dell USB Entry Keyboard';
-% deviceString = 'Lumina Keyboard';
+deviceString = 'Lumina Keyboard';
 
 translation = 0.95; % Determines baseline opacity of flicker mask
 
@@ -41,7 +41,7 @@ grey = white / 2;
 fixationFirst = 1;
 attentionFirst = 0;
 blockdur = 18; % 36 s blocks
-practiceblockdur = 5; %10 s blocks
+practiceblockdur = 6; %10 s blocks
 
 % Create a file to store response data
 cd log;
@@ -178,10 +178,11 @@ while continueExperiment == true
             
             respToBeMade = false;
             
-        elseif keyInt == 33 % 4 KEY -> EXPERIMENT
+        elseif keyInt == 33 % 4 KEY -> PRACTICE
             n = n+1;
             % Call the experiment function
             practice=1;
+            deviceString = 'Apple Internal Keyboard / Trackpad';
             [run_name, run_data] = experiment_run( n, window, grey, attentionFirst, xm, ym, dstRect, theta1, theta2, sin_freq, aperature_smooth, xCenter, yCenter, imSize,deviceString, practiceblockdur,translation, practice);
             
             % Test function output
@@ -198,7 +199,6 @@ while continueExperiment == true
         end
     end
 end
-
 
 % Clear the screen.
 ShowCursor;
