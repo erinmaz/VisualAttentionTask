@@ -22,9 +22,9 @@ clear all;
 PsychDefaultSetup(2);
 
 % SELECT RESPONSE DEVICE
-%deviceString = 'Apple Internal Keyboard / Trackpad';
+deviceString = 'Apple Internal Keyboard / Trackpad';
 %deviceString = 'Dell USB Entry Keyboard';
-deviceString = 'Lumina Keyboard';
+%deviceString = 'Lumina Keyboard';
 
 translation = 0.95; % Determines baseline opacity of flicker mask
 
@@ -109,7 +109,7 @@ while continueExperiment == true
     % Display the main menu
     Screen('TextSize', window, 36);
     DrawFormattedText(window, '1 - Localizer \n\n2 - Task 1 \n\n3 - Task 2\n\n4 - Practice task','center', 'center', black);
-    %fpintf('\nmain menu'); % This line isn't working, I dont know how to update
+    fprintf('\nmain menu: 1=localizer; 2=task1; 3=task2; 4=practice\n'); 
     %command window
     Screen('Flip', window);
     
